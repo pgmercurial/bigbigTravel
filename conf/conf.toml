@@ -1,0 +1,49 @@
+[server]
+ServerPort = ":8993"
+Env = "release"
+ServerIP = "127.0.0.1"
+
+[logger]
+WriterTarget = "file"
+FileSuffix = "day" #切割方式，day表示每天，hour表示每小时
+WithResponse = true
+InfoPath = "/data/log/travel/info.log"
+ErrorPath  = "/data/log/travel/error.log"
+DebugPath  = "/data/log/travel/debug.log"
+WarningPath  = "/data/log/travel/warning.log"
+SystemPath  = "/data/log/travel/sys.log"
+
+[mysql]
+Host = "127.0.0.1"
+Port = 3306
+UserName = "panruibajiu"
+PassWord = "PanruiBajiu123!@#"
+DBName = "bigbigTravel"
+MaxConnLifeTime = 3600
+MaxIdleConns = 128
+MaxOpenConns = 512
+
+[redis]
+Host = "127.0.0.1"
+Port = 6379
+Db  = 0
+MaxIdle	= 1000
+MaxActive = 1000
+IdleTimeout	= 180
+
+[qiniu]
+Bucket = "aiclass"
+Host = "prfcg2v7u.bkt.clouddn.com"
+AccessKey = "FqoQ7m0xAouYlwt19kgQU1a0LF5aWcBzmbGY0iIw"
+SecretKey = "7VeEN3xpa0_lCS7hZco6ny1ZEDEWlHFCGKYRn-e2"
+
+[wx]
+AppId = "wxcf4f497477342fb8"
+AppSecretKey = "a2e4e549a044bb8a8076ae783228cb4a"
+CodeToSessionURL = "https://api.weixin.qq.com/sns/jscode2session?appid={appid}&secret={appsecret}&js_code={code}&grant_type=authorization_code"
+TemplateURL = "https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token={accesstoken}"
+AppAccessTokenURL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={appsecret}"
+MchId = "1534731141"
+UnifiedOrderURL = "https://api.mch.weixin.qq.com/pay/unifiedorder"
+NotifyUrl = "http://www.ruan89.cn/customer/wxPayNotify"
+
