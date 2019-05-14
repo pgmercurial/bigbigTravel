@@ -10,6 +10,7 @@ import (
 	"bigbigTravel/component/logger"
 	"bigbigTravel/component/mysql"
 	"bigbigTravel/conf"
+	"bigbigTravel/consts"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -55,7 +56,7 @@ func customerLogin(c *gin.Context) {
 	var customerId int
 	if customerRecord != nil {
 		customerId = customerRecord.(*records.Customer).CustomerId
-		token, _ := methods.GenUserToken(customerId)
+		token, _ := methods.GenUserToken(customerId, consts.Customer)
 		httplib.Success(c, map[string]interface{}{"token":token, "found":1})
 		return
 	} else {
@@ -99,7 +100,7 @@ func customerRegister(c *gin.Context) {
 	if customerId <= 0 {
 		httplib.Failure(c, exception.ExceptionDBError)
 	}
-	token, _ := methods.GenUserToken(customerId)
+	token, _ := methods.GenUserToken(customerId, consts.Customer)
 	httplib.Success(c, map[string]interface{}{"token":token})
 	return
 }
@@ -116,7 +117,7 @@ func customerSendSmsCode(c *gin.Context) {
 }
 
 func customerGetMainTagList(c *gin.Context) {
-	if _, success := methods.ParseHttpContextToken(c); !success {
+	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
 		return
 	}
 	db := mysql.GetInstance(false)
@@ -134,7 +135,7 @@ func customerGetMainTagList(c *gin.Context) {
 }
 
 func customerGetIntroImage(c *gin.Context) {
-	if _, success := methods.ParseHttpContextToken(c); !success {
+	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
 		return
 	}
 	db := mysql.GetInstance(false)
@@ -160,14 +161,16 @@ type CustomerGetProductsByMainTagResponseItem struct {
 }
 
 func customerGetProductsByMainTag(c *gin.Context) {
-	if _, success := methods.ParseHttpContextToken(c); !success {
+	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
 		return
 	}
 	req := new(CustomerGetProductsByMainTagRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
+	//todo:更多搜索条件？
 	productRecordList := db.Find(records.RecordNameProduct).Select("*").
-		Where("main_tags", "like", "%"+req.MainTag+"%").Execute().FetchAll()
+		Where("main_tags", "like", "%"+req.MainTag+"%").
+		Where("show", "=", 1).Execute().FetchAll()
 	resp := make([]*CustomerGetProductsByMainTagResponseItem, 0)
 	if productRecordList != nil && productRecordList.Len() > 0 {
 		for _, productRecord := range productRecordList.AllRecord() {
@@ -192,7 +195,7 @@ type CustomerPrivateOrderRequest struct {
 func customerPrivateOrder(c *gin.Context) {
 	var customerId int
 	var success bool
-	if customerId, success = methods.ParseHttpContextToken(c); !success {
+	if customerId, success = methods.ParseHttpContextToken(c, consts.Customer); !success {
 		return
 	}
 	req := new(CustomerPrivateOrderRequest)
@@ -213,7 +216,7 @@ type CustomerPayDepositRequest struct {
 func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	var customerId int
 	var success bool
-	if customerId, success = methods.ParseHttpContextToken(c); !success {
+	if customerId, success = methods.ParseHttpContextToken(c, consts.Customer); !success {
 		return
 	}
 	req := new(CustomerPayDepositRequest)

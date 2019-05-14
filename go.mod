@@ -11,9 +11,9 @@ require (
 	github.com/gin-gonic/gin v1.3.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/protobuf v1.3.1 // indirect
-	github.com/liyoung1992/wechatpay v0.0.0-20190222090224-1aed4f33edd6 // indirect
+	github.com/liyoung1992/wechatpay v0.0.0-20190222090224-1aed4f33edd6
 	github.com/mattn/go-isatty v0.0.7 // indirect
-	github.com/objcoding/wxpay v1.0.6 // indirect
+	github.com/objcoding/wxpay v1.0.6
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/qiniu/x v7.0.8+incompatible
 	google.golang.org/appengine v1.5.0 // indirect

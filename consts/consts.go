@@ -9,6 +9,13 @@ func init() {
 }
 
 const(
-	AES_KEY = "bigbigtravel"
 	AppName = "bigbigtravel"
+	AES_KEY      = "biggbiggtravelll"
+	PasswordSalt   = "BigBigTravl"
+)
+
+type Actor string
+const(
+	Admin 	Actor = "admin"
+	Customer	Actor = "customer"
 )
