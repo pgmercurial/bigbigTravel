@@ -69,8 +69,8 @@ type CustomerRegisterRequest struct {
 	Mobile          string `json:"mobile" form:"mobile"`
 	Code            string `json:"code" form:"code"`
 	WxCode          string `json:"wxCode" form:"wxCode"`
-	EncryptedData   string `json:"encryptedData" form:"encryptedData"`
-	EncryptedDataIv string `json:"encryptedDataIv" form:"encryptedDataIv"`
+	//EncryptedData   string `json:"encryptedData" form:"encryptedData"`
+	//EncryptedDataIv string `json:"encryptedDataIv" form:"encryptedDataIv"`
 }
 func customerRegister(c *gin.Context) {
 	req := new(CustomerRegisterRequest)
@@ -89,14 +89,16 @@ func customerRegister(c *gin.Context) {
 		return
 	}
 	openId := wxMap["openid"]
-	sessionKey := wxMap["session_key"]
-	wxUserInfo, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
-	if err != nil {
-		httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
-	}
+	//sessionKey := wxMap["session_key"]
+	//wxUserInfo, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
+	//if err != nil {
+	//	httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
+	//}
 	db := mysql.GetInstance(false)
-	customerId := db.Insert(records.RecordNameCustomer).Columns("open_id", "name", "head_photo", "mobile", "abandon").
-		Value(openId, wxUserInfo.NickName, wxUserInfo.AvatarUrl, req.Mobile, 0).Execute().LastInsertId()
+	//customerId := db.Insert(records.RecordNameCustomer).Columns("open_id", "name", "head_photo", "mobile", "abandon").
+	//	Value(openId, wxUserInfo.NickName, wxUserInfo.AvatarUrl, req.Mobile, 0).Execute().LastInsertId()
+	customerId := db.Insert(records.RecordNameCustomer).Columns("open_id", "mobile", "abandon").
+		Value(openId, req.Mobile, 0).Execute().LastInsertId()
 	if customerId <= 0 {
 		httplib.Failure(c, exception.ExceptionDBError)
 	}
