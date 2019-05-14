@@ -233,13 +233,13 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	db := mysql.GetInstance(false)
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "product_id", "valid", "withdraw").
 		Value(customerId, req.ProductId, 0, 0).Execute().LastInsertId()
-	sign, err := methods.UnifiedOrder(conf.Config.Wx, strconv.Itoa(orderId), req.ClientIp)
+	params, err := methods.UnifiedOrder(conf.Config.Wx, strconv.Itoa(orderId), req.ClientIp)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return
 	}
 
-	httplib.Success(c, map[string]interface{}{"sign": sign})
+	httplib.Success(c, map[string]string(params))
 	return
 }
 
