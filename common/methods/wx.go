@@ -151,7 +151,7 @@ func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string) (wxpay.
 		SetString("trade_type", "APP")
 	resp, err := client.UnifiedOrder(params)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	return resp, nil
