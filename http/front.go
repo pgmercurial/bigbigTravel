@@ -207,16 +207,17 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	req := new(CustomerPayDepositRequest)
 	httplib.Load(c, req)
 
-	_, err := methods.ParseWxCode(req.WxCode, conf.Config.Wx)
+	wxMap, err := methods.ParseWxCode(req.WxCode, conf.Config.Wx)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxCodeParseError)
 		return
 	}
+	openid := wxMap["openid"]
 
 	db := mysql.GetInstance(false)
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "product_id", "valid", "withdraw").
 		Value(customerId, req.ProductId, 0, 0).Execute().LastInsertId()
-	params, err := methods.UnifiedOrder(conf.Config.Wx, strconv.Itoa(orderId), c.ClientIP())
+	params, err := methods.UnifiedOrder(conf.Config.Wx, strconv.Itoa(orderId), c.ClientIP(), openid)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return

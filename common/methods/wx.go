@@ -139,7 +139,7 @@ func pkcs7UnPadding(dst []byte, blockSize int) []byte {
 //	//Receipt    	string 		`json:"receipt" form:"receipt"`
 //	SceneInfo    	string 		`json:"scene_info" form:"scene_info"`
 //}
-func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string) (wxpay.Params, error) {
+func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string, openid string) (wxpay.Params, error) {
 	client := wxpay.NewClient(wxpay.NewAccount(wc.AppId, wc.MchId, wc.AppSecretKey, false))
 
 	params := make(wxpay.Params)
@@ -148,7 +148,8 @@ func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string) (wxpay.
 		SetInt64("total_fee", 1).
 		SetString("spbill_create_ip", clientIp).
 		SetString("notify_url", wc.NotifyUrl).
-		SetString("trade_type", "APP")
+		SetString("trade_type", "JSAPI").
+		SetString("openid", openid)
 	resp, err := client.UnifiedOrder(params)
 	if err != nil {
 		return nil, err
