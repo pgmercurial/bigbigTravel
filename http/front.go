@@ -24,7 +24,6 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/register", customerRegister)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/sendSmsCode", customerSendSmsCode)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getMainTagList", customerGetMainTagList)
-	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getIntroImage", customerGetIntroImage)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductsByMainTag", customerGetProductsByMainTag)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/privateOrder", customerPrivateOrder)
 
@@ -136,22 +135,6 @@ func customerGetMainTagList(c *gin.Context) {
 	}
 }
 
-func customerGetIntroImage(c *gin.Context) {
-	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
-		return
-	}
-	db := mysql.GetInstance(false)
-	sysconfRecord := db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
-	if sysconfRecord == nil {
-		httplib.Success(c, map[string]interface{}{"imageUrl":""})
-		return
-	} else {
-		sysConf := sysconfRecord.(*records.SysConf)
-		httplib.Success(c, map[string]interface{}{"imageUrl": sysConf.IntroImageUrl})
-		return
-	}
-}
-
 type CustomerGetProductsByMainTagRequest struct {
 	MainTag          string `json:"mainTag" form:"mainTag"`
 }
@@ -178,7 +161,7 @@ func customerGetProductsByMainTag(c *gin.Context) {
 		for _, productRecord := range productRecordList.AllRecord() {
 			product := productRecord.(*records.Product)
 			item := new(CustomerGetProductsByMainTagResponseItem)
-			item.ImageUrl = product.DetailImageUrl //todo:?
+			//item.ImageUrl = product.DetailImageUrl //todo:?
 			item.ProductId = product.ProductId
 			item.ProductName = product.ProductName
 			item.SubTags = strings.Split(product.SubTags, ",")

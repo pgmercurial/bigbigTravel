@@ -12,6 +12,8 @@ import (
 	"bigbigTravel/consts"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
+	"strconv"
+	"strings"
 )
 
 func init() {
@@ -93,6 +95,7 @@ func orderNormalList(c *gin.Context) {
 	resp := make([]*OrderListResponseItem, 0)
 	normalOrderRecordList := db.Find(records.RecordNameNormalOrder).Select("*").
 		OrderBy("product_order_id asc").Limit(20).Offset(req.Page*20).Execute().FetchAll()
+	totalCount := db.Find(records.RecordNameNormalOrder).Select("*").Count()
 	if normalOrderRecordList == nil  || normalOrderRecordList.Len() <= 0 {
 		httplib.Success(c, map[string]interface{}{"list":resp})
 		return
@@ -114,7 +117,7 @@ func orderNormalList(c *gin.Context) {
 		item.Payed = nOrder.Valid
 		resp = append(resp, item)
 	}
-	httplib.Success(c, map[string]interface{}{"list":resp})
+	httplib.Success(c, map[string]interface{}{"list":resp, "totalCount":totalCount})
 	return
 }
 
@@ -143,6 +146,7 @@ func orderPrivateList(c *gin.Context) {
 		httplib.Success(c, map[string]interface{}{"list":resp})
 		return
 	}
+	totalCount := db.Find(records.RecordNamePrivateOrder).Select("*").Count()
 	for _, pOrderRecord := range privateOrderRecordList.AllRecord() {
 		pOrder := pOrderRecord.(*records.PrivateOrder)
 		item := new(OrderPrivateListResponseItem)
@@ -157,7 +161,7 @@ func orderPrivateList(c *gin.Context) {
 		item.Handled = pOrder.Handled
 		resp = append(resp, item)
 	}
-	httplib.Success(c, map[string]interface{}{"list":resp})
+	httplib.Success(c, map[string]interface{}{"list":resp, "totalCount":totalCount})
 	return
 }
 
@@ -183,8 +187,8 @@ type ProductCreateRequest struct {
 	Start 				string		`json:"start" form:"start"`
 	End 				string		`json:"end" form:"end"`
 	Show 				int			`json:"show" form:"show"`
-	TitleImageUrl 		string		`json:"titleImageUrl" form:"titleImageUrl"`
-	DetailImageUrl 		string		`json:"detailImageUrl" form:"detailImageUrl"`
+	TitleImageResourceIds 		string		`json:"titleImageResourceIds" form:"titleImageResourceIds"`
+	DetailImageResourceIds 		string		`json:"detailImageResourceIds" form:"detailImageResourceIds"`
 	Remarks 			string		`json:"remarks" form:"remarks"`
 	MainTags 			string		`json:"mainTags" form:"mainTags"`
 	SubTags 			string		`json:"subTags" form:"subTags"`
@@ -202,8 +206,8 @@ func productCreate(c *gin.Context) {
 		ValidStartDate: req.Start,
 		ValidEndDate: req.End,
 		Show: req.Show,
-		TitleImageUrl: req.TitleImageUrl,
-		DetailImageUrl: req.DetailImageUrl,
+		TitleResourceIds: req.TitleImageResourceIds,
+		DetailResourceIds: req.DetailImageResourceIds,
 		Remarks: req.Remarks,
 		MainTags: req.MainTags,
 		SubTags: req.SubTags,
@@ -217,7 +221,7 @@ type SysConfRequest struct {
 	Op 				int 		`json:"op" form:"op"`
 
 	MainTags      	string 		`json:"mainTags" form:"mainTags"`
-	IntroImageUrl   string 		`json:"introImageUrl" form:"introImageUrl"`
+	//IntroImageUrl   string 		`json:"introImageUrl" form:"introImageUrl"`
 }
 func sysConf(c *gin.Context) {
 	req := new(SysConfRequest)
@@ -225,16 +229,13 @@ func sysConf(c *gin.Context) {
 	db := mysql.GetInstance(false)
 	if req.Op == 0 { //new
 		db.Update(records.RecordNameSysConf).Set("enable", 0).Execute()
-		db.Insert(records.RecordNameSysConf).Columns("main_tags", "intro_image_url").Value(req.MainTags, req.IntroImageUrl).Execute()
+		db.Insert(records.RecordNameSysConf).Columns("main_tags").Value(req.MainTags).Execute()
 	} else {  //update
 		sysConfRecord := db.Find(records.RecordNameSysConf).Where("enable", "=", 1).Execute().Fetch()
 		if sysConfRecord != nil {
 			sysConf := sysConfRecord.(*records.SysConf)
 			if req.MainTags != "" {
 				sysConf.MainTags = req.MainTags
-			}
-			if req.IntroImageUrl != "" {
-				sysConf.IntroImageUrl = req.IntroImageUrl
 			}
 			db.SaveRecord(sysConf)
 		}
@@ -265,7 +266,14 @@ func resourceUpload(c *gin.Context) {
 
 	url := "http://" + conf.Config.Qiniu.Host + "/" + qnResp.Key
 
-	httplib.Success(c, map[string]interface{}{"url":url})
+	db := mysql.GetInstance(false)
+	resourceId := db.Insert(records.RecordNameResource).Columns("qiniu_url").Value(url).Execute().LastInsertId()
+	if resourceId <= 0 {
+		httplib.Failure(c, exception.ExceptionDBError)
+		return
+	}
+
+	httplib.Success(c, map[string]interface{}{"resourceId":resourceId})
 	return
 }
 
@@ -283,19 +291,25 @@ type ProductListResponseItem struct {
 	Start 				string		`json:"start" form:"start"`
 	End 				string		`json:"end" form:"end"`
 	Show 				int			`json:"show" form:"show"`
-	TitleImageUrl 		string		`json:"titleImageUrl" form:"titleImageUrl"`
-	DetailImageUrl 		string		`json:"detailImageUrl" form:"detailImageUrl"`
+	TitleImages 		[]*ImageItem		`json:"titleImages" form:"titleImages"`
+	DetailImages 		[]*ImageItem		`json:"detailImages" form:"detailImages"`
 	Remarks 			string		`json:"remarks" form:"remarks"`
 	MainTags 			string		`json:"mainTags" form:"mainTags"`
 	SubTags 			string		`json:"subTags" form:"subTags"`
+}
+type ImageItem struct {
+	ResourceId 			int			`json:"resourceId" form:"resourceId"`
+	Url 				string		`json:"url" form:"url"`
+
 }
 func productList(c *gin.Context) {
 	req := new(ProductListRequest)
 	resp := make([]*ProductListResponseItem, 0)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
-	productRecordList := db.Find(records.RecordNameProduct).Select("*").Where("show","=", 1).
+	productRecordList := db.Find(records.RecordNameProduct).Select("*").
 		Limit(20).Offset(req.Page*20).Execute().FetchAll()
+	totalCount := db.Find(records.RecordNameProduct).Select("*").Count()
 	if productRecordList == nil {
 		httplib.Success(c)
 	} else {
@@ -310,14 +324,43 @@ func productList(c *gin.Context) {
 			item.Start = product.ValidStartDate
 			item.End = product.ValidEndDate
 			item.Show = product.Show
-			item.TitleImageUrl = product.TitleImageUrl
-			item.DetailImageUrl = product.DetailImageUrl
+
+			item.TitleImages = make([]*ImageItem, 0)
+			titleResourceIdList := strings.Split(product.TitleResourceIds, ",")
+			for _, resourceIdStr := range titleResourceIdList {
+				resourceId, err := strconv.Atoi(resourceIdStr)
+				if err == nil {
+					resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+					if resourceRecord != nil {
+						newImageItem := new(ImageItem)
+						newImageItem.ResourceId = resourceId
+						newImageItem.Url = resourceRecord.(*records.Resource).QiniuUrl
+						item.TitleImages = append(item.TitleImages, newImageItem)
+					}
+				}
+			}
+
+			item.DetailImages = make([]*ImageItem, 0)
+			detailResourceIdList := strings.Split(product.DetailResourceIds, ",")
+			for _, resourceIdStr := range detailResourceIdList {
+				resourceId, err := strconv.Atoi(resourceIdStr)
+				if err == nil {
+					resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+					if resourceRecord != nil {
+						newImageItem := new(ImageItem)
+						newImageItem.ResourceId = resourceId
+						newImageItem.Url = resourceRecord.(*records.Resource).QiniuUrl
+						item.DetailImages = append(item.DetailImages, newImageItem)
+					}
+				}
+			}
+
 			item.Remarks = product.Remarks
 			item.MainTags = product.MainTags
 			item.SubTags = product.SubTags
 			resp = append(resp, item)
 		}
-		httplib.Success(c, map[string]interface{}{"list":resp})
+		httplib.Success(c, map[string]interface{}{"list":resp, "totalCount": totalCount})
 	}
 	return
 }

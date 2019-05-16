@@ -36,8 +36,8 @@ CREATE TABLE `product` (
   `valid_start_date` varchar(16) NOT NULL DEFAULT '' COMMENT '产品有效起始时间,example:2019-05-01',
   `valid_end_date` varchar(16) NOT NULL DEFAULT '' COMMENT '产品有效终止时间,example:2019-06-01',
   `show` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否展示 0-不展示 1-展示',
-  `titleImageUrl` varchar(128) NOT NULL DEFAULT '' COMMENT '标题图片七牛云url',
-  `detailImageUrl` varchar(128) NOT NULL DEFAULT '' COMMENT '详情图片七牛云url',
+  `titleResourceIds` varchar(512) NOT NULL DEFAULT '' COMMENT 'qiniu ressource id list，逗号分隔！',
+  `detailResourceIds` varchar(512) NOT NULL DEFAULT '' COMMENT 'qiniu ressource id list，逗号分隔！',
   `remarks` varchar(512) NOT NULL DEFAULT '' COMMENT '备注',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -69,3 +69,24 @@ CREATE TABLE `private_order` (
   KEY `idx_customer_id` (`customer_id`),
   KEY `idx_withdraw` (`withdraw`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='私人订制订单表';
+
+
+CREATE TABLE `sys_conf` (
+  `sys_conf_id` int(11) NOT NULL AUTO_INCREMENT,
+  `main_tags` varchar(512) NOT NULL DEFAULT '' COMMENT '主标签列表，逗号分隔',
+  `enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否使用0-不使用 1-使用',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`sys_conf_id`),
+  KEY `idx_enable` (`enable`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='私人订制订单表';
+
+
+
+CREATE TABLE `resource` (
+  `resource_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qiniu_url` varchar(128) NOT NULL DEFAULT '' COMMENT '七牛云资源存储url',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`resource_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='七牛云资源url表';
