@@ -47,4 +47,5 @@ MchId = "1534731141"
 UnifiedOrderURL = "https://api.mch.weixin.qq.com/pay/unifiedorder"
 NotifyUrl = "http://www.ruan89.cn/customer/wxPayNotify"
 PayCertDataPath = "./apiclient_cert.p12"
+ApiKey = "Wub1anj1Wub1anj1Wub1anj1Wub1anj1"
 

@@ -42,6 +42,7 @@ type WxConfig struct {
 	NotifyUrl			string
 
 	PayCertDataPath		string
+	ApiKey				string
 }
 
 var Config AppConfig
