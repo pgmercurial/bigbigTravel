@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/liyoung1992/wechatpay"
-	"github.com/objcoding/wxpay"
+	"bigbigTravel/component/wxpay"
 	"net/http"
 	"strings"
 )
@@ -140,7 +140,7 @@ func pkcs7UnPadding(dst []byte, blockSize int) []byte {
 //	SceneInfo    	string 		`json:"scene_info" form:"scene_info"`
 //}
 func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string, openid string) (wxpay.Params, error) {
-	client := wxpay.NewClient(wxpay.NewAccount(wc.AppId, wc.MchId, wc.AppSecretKey, false))
+	client := wxpay.NewClient(wxpay.NewAccount(wc.AppId, wc.MchId, wc.AppSecretKey, false).SetCertData(wc.PayCertDataPath))
 
 	params := make(wxpay.Params)
 	params.SetString("body", "test").

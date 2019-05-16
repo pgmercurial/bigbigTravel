@@ -46,4 +46,5 @@ AppAccessTokenURL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_c
 MchId = "1534731141"
 UnifiedOrderURL = "https://api.mch.weixin.qq.com/pay/unifiedorder"
 NotifyUrl = "http://www.ruan89.cn/customer/wxPayNotify"
+PayCertDataPath = "./wxPayCertFile"
 

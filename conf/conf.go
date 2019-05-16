@@ -40,6 +40,8 @@ type WxConfig struct {
 	MchId 				string
 	UnifiedOrderURL		string
 	NotifyUrl			string
+
+	PayCertDataPath		string
 }
 
 var Config AppConfig
