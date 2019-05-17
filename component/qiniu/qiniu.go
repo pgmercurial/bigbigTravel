@@ -49,7 +49,7 @@ func UploadFile(fileBytes []byte, key string) (*storage.PutRet, error) {
 
 	formUploader := storage.NewFormUploader(qncfg)
 	ret := storage.PutRet{}
-	err := formUploader.Put(context.Background(), &ret, upToken, key, bytes.NewReader(fileBytes), int64(len(fileBytes)), nil)
+	err := formUploader.Put(context.Background(), &ret, upToken, key, bytes.NewReader(fileBytes), int64(len(fileBytes)), &storage.PutExtra{})
 	if err != nil {
 		return nil, err
 	}

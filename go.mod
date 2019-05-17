@@ -16,6 +16,7 @@ require (
 	github.com/objcoding/wxpay v1.0.6
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/qiniu/x v7.0.8+incompatible
+	golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b
 	google.golang.org/appengine v1.5.0 // indirect
 	qiniupkg.com/x v7.0.8+incompatible
 )

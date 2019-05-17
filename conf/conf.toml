@@ -32,7 +32,7 @@ MaxActive = 1000
 IdleTimeout	= 180
 
 [qiniu]
-Bucket = "aiclass"
+Bucket = "bigbigtravel"
 Host = "prfcg2v7u.bkt.clouddn.com"
 AccessKey = "FqoQ7m0xAouYlwt19kgQU1a0LF5aWcBzmbGY0iIw"
 SecretKey = "7VeEN3xpa0_lCS7hZco6ny1ZEDEWlHFCGKYRn-e2"

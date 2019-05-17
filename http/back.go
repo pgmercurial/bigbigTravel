@@ -10,6 +10,7 @@ import (
 	"bigbigTravel/component/qiniu"
 	"bigbigTravel/conf"
 	"bigbigTravel/consts"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"strconv"
@@ -260,7 +261,8 @@ func resourceUpload(c *gin.Context) {
 
 	qnResp, err := qiniu.UploadFile(fileBody, "image/"+fh.Filename)
 	if err != nil {
-		httplib.Failure(c, exception.ExceptionResourceUploadError)
+		fmt.Println(err.Error())
+		httplib.Failure(c, exception.ExceptionResourceUploadError, err.Error())
 		return
 	}
 
