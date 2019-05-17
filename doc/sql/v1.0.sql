@@ -47,8 +47,11 @@ CREATE TABLE `product` (
 CREATE TABLE `normal_order` (
   `product_order_id` int(11) NOT NULL AUTO_INCREMENT,
   `customer_id` int(11) NOT NULL DEFAULT 0 COMMENT '客户id',
+  `mobile` varchar(11) NOT NULL DEFAULT '' COMMENT '客户手机号',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '客户姓名',
   `product_id` int(11) NOT NULL DEFAULT 0 COMMENT '产品id',
   `withdraw` tinyint(1) NOT NULL DEFAULT 0 COMMENT '订单是否撤销0-有效 1-撤销',
+  `payed` tinyint(1) NOT NULL DEFAULT 0 COMMENT '订单是否已付定金0-否 1-是',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`product_order_id`),
@@ -60,6 +63,8 @@ CREATE TABLE `normal_order` (
 CREATE TABLE `private_order` (
   `private_order_id` int(11) NOT NULL AUTO_INCREMENT,
   `customer_id` int(11) NOT NULL DEFAULT 0 COMMENT '客户id',
+  `mobile` varchar(11) NOT NULL DEFAULT '' COMMENT '客户手机号',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '客户姓名',
   `destination` varchar(64) NOT NULL DEFAULT '' COMMENT '目的地名称',
   `withdraw` tinyint(1) NOT NULL DEFAULT 0 COMMENT '订单是否撤销0-有效 1-撤销',
   `handled` tinyint(1) NOT NULL DEFAULT 0 COMMENT '订单是否已经被处理0-未处理 1-已处理',

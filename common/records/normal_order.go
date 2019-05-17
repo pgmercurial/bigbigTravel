@@ -12,11 +12,13 @@ func init()  {
 
 type NormalOrder struct{
 	ProductOrderId	int	`json:"productOrderId" form:"productOrderId" column:"product_order_id" primary:"true" modify:"false"`
-	CustomerId	int	`form:"customerId" column:"customer_id" modify:"true" json:"customerId"`
-	ProductId	int	`json:"productId" form:"productId" column:"product_id" modify:"true"`
-	Valid	int	`column:"valid" modify:"true" json:"valid" form:"valid"`
-	Withdraw	int	`column:"withdraw" modify:"true" json:"withdraw" form:"withdraw"`
-	CreateTime	string	`json:"createTime" form:"createTime" column:"create_time" modify:"false"`
+	CustomerId	int	`modify:"true" json:"customerId" form:"customerId" column:"customer_id"`
+	Mobile	string	`json:"mobile" form:"mobile" column:"mobile" modify:"true"`
+	CustomerName	string	`json:"name" form:"name" column:"name" modify:"true"`
+	ProductId	int	`form:"productId" column:"product_id" modify:"true" json:"productId"`
+	Withdraw	int	`form:"withdraw" column:"withdraw" modify:"true" json:"withdraw"`
+	Payed	int	`json:"payed" form:"payed" column:"payed" modify:"true"`
+	CreateTime	string	`modify:"false" json:"createTime" form:"createTime" column:"create_time"`
 	UpdateTime	string	`json:"updateTime" form:"updateTime" column:"update_time" modify:"false"`
 }
 

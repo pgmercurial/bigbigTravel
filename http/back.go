@@ -24,8 +24,8 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/order/handlePrivate", orderHandlePrivate)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/create", productCreate)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/list", productList)
-	//http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/update", productUpdate)
-	//http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/delete", productDelete)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/update", productUpdate)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/delete", productDelete)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/resource/upload/image", resourceUpload)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf", sysConf)
 }
@@ -114,7 +114,7 @@ func orderNormalList(c *gin.Context) {
 		if productRecord != nil {
 			item.ProductName = productRecord.(*records.Product).ProductName
 		}
-		item.Payed = nOrder.Valid
+		item.Payed = nOrder.Payed
 		resp = append(resp, item)
 	}
 	httplib.Success(c, map[string]interface{}{"list":resp, "totalCount":totalCount})
@@ -362,5 +362,63 @@ func productList(c *gin.Context) {
 		}
 		httplib.Success(c, map[string]interface{}{"list":resp, "totalCount": totalCount})
 	}
+	return
+}
+
+
+type ProductUpdateRequest struct {
+	ProductId      		int 		`json:"productId" form:"productId"`
+	ProductName      	string 		`json:"productName" form:"productName"`
+	Type 				int			`json:"type" form:"type"`
+	Destination 		string		`json:"destination" form:"destination"`
+	Count 				int			`json:"count" form:"count"`
+	Price 				int			`json:"price" form:"price"`
+	Start 				string		`json:"start" form:"start"`
+	End 				string		`json:"end" form:"end"`
+	Show 				int			`json:"show" form:"show"`
+	TitleImageResourceIds 		string		`json:"titleImageResourceIds" form:"titleImageResourceIds"`
+	DetailImageResourceIds 		string		`json:"detailImageResourceIds" form:"detailImageResourceIds"`
+	Remarks 			string		`json:"remarks" form:"remarks"`
+	MainTags 			string		`json:"mainTags" form:"mainTags"`
+	SubTags 			string		`json:"subTags" form:"subTags"`
+}
+func productUpdate(c *gin.Context) {
+	req := new(ProductUpdateRequest)
+	httplib.Load(c, req)
+	db := mysql.GetInstance(false)
+
+	product := new(records.Product)
+	productRecord := db.FindOneByPrimary(records.RecordNameProduct, req.ProductId)
+	if productRecord != nil {
+		product = productRecord.(*records.Product)
+	}
+	product.ProductName = req.ProductName
+	product.Type = req.Type
+	product.Destination = req.Destination
+	product.Count = req.Count
+	product.Price = req.Price
+	product.ValidStartDate = req.Start
+	product.ValidEndDate = req.End
+	product.Show = req.Show
+	product.TitleResourceIds = req.TitleImageResourceIds
+	product.DetailResourceIds = req.DetailImageResourceIds
+	product.Remarks = req.Remarks
+	product.MainTags = req.MainTags
+	product.SubTags = req.SubTags
+	db.SaveRecord(product)
+	httplib.Success(c)
+	return
+}
+
+
+type ProductDeleteRequest struct {
+	ProductId      		int 		`json:"productId" form:"productId"`
+}
+func productDelete(c *gin.Context) {
+	req := new(ProductDeleteRequest)
+	httplib.Load(c, req)
+	db := mysql.GetInstance(false)
+	db.Delete(records.RecordNameProduct).Where("product_id", "=", req.ProductId).Execute()
+	httplib.Success(c)
 	return
 }

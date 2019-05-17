@@ -27,7 +27,7 @@ var path = "/Users/ruipan/myProjects/bigbigTravel/common/records"
 
 func TestGenerateSingleRecords(t *testing.T) {
 	initMysql()
-	records := []string{"product", "resource"}
+	records := []string{"normal_order"}
 	GenerateRecords(path, GenerateSingle, records...)
 }
 

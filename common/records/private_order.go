@@ -11,13 +11,15 @@ func init()  {
 }
 
 type PrivateOrder struct{
-	PrivateOrderId	int	`json:"privateOrderId" form:"privateOrderId" column:"private_order_id" primary:"true" modify:"false"`
-	CustomerId	int	`form:"customerId" column:"customer_id" modify:"true" json:"customerId"`
+	PrivateOrderId	int	`form:"privateOrderId" column:"private_order_id" primary:"true" modify:"false" json:"privateOrderId"`
+	CustomerId	int	`modify:"true" json:"customerId" form:"customerId" column:"customer_id"`
+	Mobile	string	`json:"mobile" form:"mobile" column:"mobile" modify:"true"`
+	CustomerName	string	`json:"name" form:"name" column:"name" modify:"true"`
 	Destination	string	`form:"destination" column:"destination" modify:"true" json:"destination"`
-	Withdraw	int	`form:"withdraw" column:"withdraw" modify:"true" json:"withdraw"`
+	Withdraw	int	`json:"withdraw" form:"withdraw" column:"withdraw" modify:"true"`
 	Handled	int	`json:"handled" form:"handled" column:"handled" modify:"true"`
-	CreateTime	string	`json:"createTime" form:"createTime" column:"create_time" modify:"false"`
-	UpdateTime	string	`form:"updateTime" column:"update_time" modify:"false" json:"updateTime"`
+	CreateTime	string	`modify:"false" json:"createTime" form:"createTime" column:"create_time"`
+	UpdateTime	string	`modify:"false" json:"updateTime" form:"updateTime" column:"update_time"`
 }
 
 func (r *PrivateOrder) Name() string {
