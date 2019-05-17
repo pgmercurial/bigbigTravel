@@ -277,15 +277,16 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 		return
 	}
 	openid := wxMap["openid"]
-	sessionKey := wxMap["session_key"]
-	wxUserInfo, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
-	if err != nil {
-		httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
-	}
+	//sessionKey := wxMap["session_key"]
+	//wxUserInfo, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
+	//if err != nil {
+	//	httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
+	//}
+
 
 	db := mysql.GetInstance(false)
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "mobile", "name", "product_id", "valid", "withdraw").
-		Value(customerId, req.Mobile, wxUserInfo.NickName, req.ProductId, 0, 0).Execute().LastInsertId()
+		Value(customerId, req.Mobile, "", req.ProductId, 0, 0).Execute().LastInsertId()
 	params, err := methods.UnifiedOrder(conf.Config.Wx, strconv.Itoa(orderId), c.ClientIP(), openid)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
