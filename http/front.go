@@ -301,7 +301,7 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	resp["nonceStr"] = wxpay.NonceStr()
 	resp["package"] = fmt.Sprintf("prepay_id=%s", params["prepay_id"])
 	resp["signType"] = "MD5"
-	resp["paySigh"] = wxpay.Resign(resp, conf.Config.Wx.ApiKey)
+	resp["paySign"] = wxpay.Resign(resp, conf.Config.Wx.ApiKey)
 
 	httplib.Success(c, resp)
 	return
