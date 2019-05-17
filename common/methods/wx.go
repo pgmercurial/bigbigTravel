@@ -220,42 +220,27 @@ func WxPayNotify(c *gin.Context, body []byte, wc *conf.WxConfig) (string, error)
 	if err != nil {
 		return "", err
 	}
-	var reqMap map[string]interface{}
-	reqMap = make(map[string]interface{}, 0)
+	//var reqMap map[string]interface{}
+	//reqMap = make(map[string]interface{}, 0)
 
-	reqMap["return_code"] = req.ReturnCode
-	reqMap["return_msg"] = req.ReturnMsg
-	reqMap["appid"] = req.AppId
-	reqMap["mch_id"] = req.MchId
-	reqMap["nonce_str"] = req.NonceStr
-	reqMap["result_code"] = req.ResultCode
-	reqMap["openid"] = req.OpenId
-	reqMap["is_subscribe"] = req.IsSubscribe
-	reqMap["trade_type"] = req.TradeType
-	reqMap["bank_type"] = req.BankType
-	reqMap["total_fee"] = req.TotalFee
-	reqMap["fee_type"] = req.FeeType
-	reqMap["cash_fee"] = req.CashFee
-	reqMap["cash_fee_type"] = req.CashFeeType
-	reqMap["transaction_id"] = req.TransactionId
-	reqMap["out_trade_no"] = req.OutTradeNo
-	reqMap["attach"] = req.Attach
-	reqMap["time_end"] = req.TimeEnd
+	//reqMap["return_code"] = req.ReturnCode
+	//reqMap["return_msg"] = req.ReturnMsg
+	//reqMap["appid"] = req.AppId
+	//reqMap["mch_id"] = req.MchId
+	//reqMap["nonce_str"] = req.NonceStr
+	//reqMap["result_code"] = req.ResultCode
+	//reqMap["openid"] = req.OpenId
+	//reqMap["is_subscribe"] = req.IsSubscribe
+	//reqMap["trade_type"] = req.TradeType
+	//reqMap["bank_type"] = req.BankType
+	//reqMap["total_fee"] = req.TotalFee
+	//reqMap["fee_type"] = req.FeeType
+	//reqMap["cash_fee"] = req.CashFee
+	//reqMap["cash_fee_type"] = req.CashFeeType
+	//reqMap["transaction_id"] = req.TransactionId
+	//reqMap["out_trade_no"] = req.OutTradeNo
+	//reqMap["attach"] = req.Attach
+	//reqMap["time_end"] = req.TimeEnd
 
-	wxPayClient := wechatpay.New(wc.AppId, wc.MchId, wc.AppSecretKey, nil, nil)
-
-	//进行签名校验
-	if wxPayClient.VerifySign(reqMap, req.Sign) {
-		c.XML(http.StatusOK, gin.H{
-			"return_code": "SUCCESS",
-			"return_msg":  "OK",
-		})
-		return req.OutTradeNo, nil
-	} else {
-		c.XML(http.StatusOK, gin.H{
-			"return_code": "FAIL",
-			"return_msg":  "failed to verify sign, please retry!",
-		})
-		return "", errors.New("verify sign failed")
-	}
+	return req.OutTradeNo, nil
 }
