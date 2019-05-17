@@ -1,17 +1,14 @@
 package wxpay
 
 import (
-	"crypto/hmac"
 	"crypto/md5"
-	"crypto/sha256"
 	"crypto/tls"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"sort"
 	"strings"
-	"errors"
-	"bytes"
 )
 
 const bodyType = "application/xml; charset=utf-8"
@@ -93,7 +90,9 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 	}
 	h := &http.Client{Transport: transport}
 	p := c.fillRequestData(params)
-	response, err := h.Post(url, bodyType, strings.NewReader(MapToXml(p)))
+	xml := MapToXml(p)
+	fmt.Println("postWithCert", "xml request", xml)
+	response, err := h.Post(url, bodyType, strings.NewReader(xml))
 	if err != nil {
 		return "", err
 	}
@@ -122,50 +121,74 @@ func (c *Client) ValidSign(params Params) bool {
 
 // 签名
 func (c *Client) Sign(params Params) string {
-	// 创建切片
-	var keys = make([]string, 0, len(params))
-	// 遍历签名参数
-	for k := range params {
-		if k != "sign" { // 排除sign字段
-			keys = append(keys, k)
-		}
+	//// 创建切片
+	//var keys = make([]string, 0, len(params))
+	//// 遍历签名参数
+	//for k := range params {
+	//	if k != "sign" { // 排除sign字段
+	//		keys = append(keys, k)
+	//	}
+	//}
+	//
+	//// 由于切片的元素顺序是不固定，所以这里强制给切片元素加个顺序
+	//sort.Strings(keys)
+	//
+	////创建字符缓冲
+	//var buf bytes.Buffer
+	//for _, k := range keys {
+	//	if len(params.GetString(k)) > 0 {
+	//		buf.WriteString(k)
+	//		buf.WriteString(`=`)
+	//		buf.WriteString(params.GetString(k))
+	//		buf.WriteString(`&`)
+	//	}
+	//}
+	//// 加入apiKey作加密密钥
+	//buf.WriteString(`key=`)
+	//buf.WriteString(c.account.apiKey)
+	//
+	//var (
+	//	dataMd5    [16]byte
+	//	dataSha256 []byte
+	//	str        string
+	//)
+	//
+	//switch c.signType {
+	//case MD5:
+	//	dataMd5 = md5.Sum(buf.Bytes())
+	//	str = hex.EncodeToString(dataMd5[:]) //需转换成切片
+	//case HMACSHA256:
+	//	h := hmac.New(sha256.New, []byte(c.account.apiKey))
+	//	h.Write(buf.Bytes())
+	//	dataSha256 = h.Sum(nil)
+	//	str = hex.EncodeToString(dataSha256[:])
+	//}
+
+	var appid, body, deviceInfo, mchId, nonceString string
+	var ok bool
+	if appid, ok = params["appid"]; !ok {
+		appid = c.account.appID
+	}
+	if body, ok = params["body"]; !ok {
+		body = "test"
+	}
+	if deviceInfo, ok = params["device_info"]; !ok {
+		deviceInfo = "WXAPP"
+	}
+	if mchId, ok = params["mch_id"]; !ok {
+		mchId = c.account.mchID
+	}
+	if nonceString, ok = params["nonce_str"]; !ok {
+		nonceString = nonceStr()
 	}
 
-	// 由于切片的元素顺序是不固定，所以这里强制给切片元素加个顺序
-	sort.Strings(keys)
+	stringA := fmt.Sprintf("appid=%s&body=%s&device_info=%s&mch_id=%s&nonce_str=%s",
+		appid, body, deviceInfo, mchId, nonceString)
+	stringSignTemp := stringA + fmt.Sprintf("&key=%s", c.account.apiKey)
 
-	//创建字符缓冲
-	var buf bytes.Buffer
-	for _, k := range keys {
-		if len(params.GetString(k)) > 0 {
-			buf.WriteString(k)
-			buf.WriteString(`=`)
-			buf.WriteString(params.GetString(k))
-			buf.WriteString(`&`)
-		}
-	}
-	// 加入apiKey作加密密钥
-	buf.WriteString(`key=`)
-	buf.WriteString(c.account.apiKey)
-
-	var (
-		dataMd5    [16]byte
-		dataSha256 []byte
-		str        string
-	)
-
-	switch c.signType {
-	case MD5:
-		dataMd5 = md5.Sum(buf.Bytes())
-		str = hex.EncodeToString(dataMd5[:]) //需转换成切片
-	case HMACSHA256:
-		h := hmac.New(sha256.New, []byte(c.account.apiKey))
-		h.Write(buf.Bytes())
-		dataSha256 = h.Sum(nil)
-		str = hex.EncodeToString(dataSha256[:])
-	}
-
-	return strings.ToUpper(str)
+	md5Bytes := md5.Sum([]byte(stringSignTemp))
+	hexStr := hex.EncodeToString(md5Bytes[:])
+	return strings.ToUpper(hexStr)
 }
 
 // 处理 HTTPS API返回数据，转换成Map对象。return_code为SUCCESS时，验证签名。
