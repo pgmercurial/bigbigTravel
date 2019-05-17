@@ -196,6 +196,17 @@ func (c *Client) Sign(params Params) string {
 	//return strings.ToUpper(hexStr)
 }
 
+//前端再次签名所需要的数据
+func Resign(mp map[string]string, apiKey string) string {
+	stringA := fmt.Sprintf("appId=%s&nonceStr=%s&package=%s&signType=%s&timeStamp=%s",
+		mp["appId"], mp["nonceStr"], mp["package"], mp["signType"], mp["timeStamp"])
+	stringSignTemp := stringA + fmt.Sprintf("&key=%s", apiKey)
+
+	md5Bytes := md5.Sum([]byte(stringSignTemp))
+	hexStr := hex.EncodeToString(md5Bytes[:])
+	return strings.ToUpper(hexStr)
+}
+
 // 处理 HTTPS API返回数据，转换成Map对象。return_code为SUCCESS时，验证签名。
 func (c *Client) processResponseXml(xmlStr string) (Params, error) {
 	var returnCode string

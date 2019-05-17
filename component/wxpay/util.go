@@ -62,6 +62,12 @@ func nonceStr() string {
 	return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 }
 
+// 用时间戳生成随机字符串
+func NonceStr() string {
+	return nonceStr()
+}
+
+
 // 将Pkcs12转成Pem
 func pkcs12ToPem(p12 []byte, password string) tls.Certificate {
 

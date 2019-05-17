@@ -9,6 +9,7 @@ import (
 	"bigbigTravel/component/http/httplib"
 	"bigbigTravel/component/logger"
 	"bigbigTravel/component/mysql"
+	"bigbigTravel/component/wxpay"
 	"bigbigTravel/conf"
 	"bigbigTravel/consts"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"errors"
+	"time"
 )
 
 func init() {
@@ -292,6 +294,14 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return
 	}
+
+	resp := map[string]string{}
+	resp["appId"] = params["appid"]
+	resp["timeStamp"] = strconv.Itoa(int(time.Now().Unix()))
+	resp["nonceStr"] = wxpay.NonceStr()
+	resp["package"] = fmt.Sprintf("prepay_id=%s", params["prepay_id"])
+	resp["signType"] = "MD5"
+	resp["paySigh"] = wxpay.Resign(resp, conf.Config.Wx.ApiKey)
 
 	httplib.Success(c, map[string]string(params))
 	return
