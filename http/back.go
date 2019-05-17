@@ -245,7 +245,7 @@ func sysConf(c *gin.Context) {
 }
 
 func resourceUpload(c *gin.Context) {
-	f, fh, err := c.Request.FormFile("image")
+	f, fh, err := c.Request.FormFile("file")
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionInvalidParams, "miss upload image key `image`:"+err.Error())
 		return
