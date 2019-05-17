@@ -333,8 +333,11 @@ func customerWxPayNotify(c *gin.Context) {
 			return
 	}
 	normalOrder := normalOrderRecord.(*records.NormalOrder)
-	normalOrder.Payed = 1
-	db.SaveRecord(normalOrder)
+	if normalOrder.Payed == 0 {
+		normalOrder.Payed = 1
+		db.SaveRecord(normalOrder)
+	}
+	httplib.Success(c)
 	return
 }
 
