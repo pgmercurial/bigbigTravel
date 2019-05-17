@@ -61,7 +61,7 @@ type WxUserInfo struct {
 	UnionId   string `json:"unionId" form:"unionId"`
 }
 
-func ParseWxEncryptedData(encryptedData string, sessionKey string, iv string) (*WxUserInfo, error) {
+func ParseWxEncryptedData(encryptedData string, sessionKey string, iv string) ([]byte, error) {
 	cipher, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {
 		fmt.Println("encryptedData: ", encryptedData, "\n", err.Error())
@@ -85,13 +85,13 @@ func ParseWxEncryptedData(encryptedData string, sessionKey string, iv string) (*
 		return nil, resultErr
 	}
 
-	result := new(WxUserInfo)
-	err = json.Unmarshal(bytes, result)
-	if err != nil {
-		return nil, err
-	}
+	//result := new(WxUserInfo)
+	//err = json.Unmarshal(bytes, result)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	return result, nil
+	return bytes, nil
 }
 
 

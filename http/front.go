@@ -12,6 +12,7 @@ import (
 	"bigbigTravel/component/wxpay"
 	"bigbigTravel/conf"
 	"bigbigTravel/consts"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -32,6 +33,9 @@ func init() {
 
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/wxPayDeposit", customerWxPayDeposit)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/wxPayNotify", customerWxPayNotify)
+
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/needAuthorize", customerNeedAuthorize)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/authorize", customerAuthorize)
 
 }
 
@@ -255,14 +259,8 @@ func customerPrivateOrder(c *gin.Context) {
 }
 
 type CustomerPayDepositRequest struct {
-	WxCode		string 	`json:"wxCode" form:"wxCode"`
 	ProductId	int 	`json:"productId" form:"productId"`
 	ClientIp	string 	`json:"clientIp" form:"clientIp"`
-
-	Mobile			string 	`json:"mobile" form:"mobile"`
-	EncryptedData   string `json:"encryptedData" form:"encryptedData"`
-	EncryptedDataIv string `json:"encryptedDataIv" form:"encryptedDataIv"`
-
 }
 func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	var customerId int
@@ -272,24 +270,13 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	}
 	req := new(CustomerPayDepositRequest)
 	httplib.Load(c, req)
-
-	wxMap, err := methods.ParseWxCode(req.WxCode, conf.Config.Wx)
-	if err != nil {
-		httplib.Failure(c, exception.ExceptionWxCodeParseError)
-		return
-	}
-	openid := wxMap["openid"]
-	//sessionKey := wxMap["session_key"]
-	//wxUserInfo, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
-	//if err != nil {
-	//	httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
-	//}
-	//todo:
-
 	db := mysql.GetInstance(false)
+
+	customer := db.FindOneByPrimary(records.RecordNameCustomer, customerId).(*records.Customer)
+
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "mobile", "name", "product_id", "payed", "withdraw").
-		Value(customerId, req.Mobile, "", req.ProductId, 0, 0).Execute().LastInsertId()
-	params, err := methods.UnifiedOrder(conf.Config.Wx, gen32TradeNo(strconv.Itoa(orderId)), c.ClientIP(), openid)
+		Value(customerId, customer.Mobile, customer.CustomerName, req.ProductId, 0, 0).Execute().LastInsertId()
+	params, err := methods.UnifiedOrder(conf.Config.Wx, gen32TradeNo(strconv.Itoa(orderId)), c.ClientIP(), customer.OpenId)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return
@@ -356,4 +343,66 @@ func gen32TradeNo(origin string) string{
 func parse32TradeNo(origin string) string{
 	result := strings.TrimPrefix(origin, "1")
 	return strings.TrimLeft(result, "0")
+}
+
+
+func customerNeedAuthorize(c *gin.Context) {
+	var customerId int
+	var ok bool
+	if customerId, ok = methods.ParseHttpContextToken(c, consts.Customer); !ok {
+		return
+	}
+	db := mysql.GetInstance(false)
+	customerRecord := db.FindOneByPrimary(records.RecordNameCustomer, customerId)
+	if customerRecord == nil {
+		httplib.Success(c, map[string]interface{}{"need":1})
+	} else {
+		customer := customerRecord.(*records.Customer)
+		if customer.Mobile == "" || customer.CustomerName == "" {
+			httplib.Success(c, map[string]interface{}{"need":1})
+		} else {
+			httplib.Success(c, map[string]interface{}{"need":0})
+		}
+	}
+
+	return
+}
+
+type CustomerAuthorizeRequest struct {
+	WxCode			string 	`json:"wxCode" form:"wxCode"`
+	Name			string `json:"name" form:"name"`
+	EncryptedData   string `json:"encryptedData" form:"encryptedData"`
+	EncryptedDataIv string `json:"encryptedDataIv" form:"encryptedDataIv"`
+}
+type WxPhoneNumberInfo struct {
+	PhoneNumber			string 	`json:"phoneNumber" form:"phoneNumber"`
+	PurePhoneNumber		string 	`json:"purePhoneNumber" form:"purePhoneNumber"`
+}
+func customerAuthorize(c *gin.Context) {
+	var customerId int
+	var ok bool
+	if customerId, ok = methods.ParseHttpContextToken(c, consts.Customer); !ok {
+		return
+	}
+	req := new(CustomerAuthorizeRequest)
+	httplib.Load(c, req)
+	wxMap, err := methods.ParseWxCode(req.WxCode, conf.Config.Wx)
+	if err != nil {
+		httplib.Failure(c, exception.ExceptionWxCodeParseError)
+		return
+	}
+	//openid := wxMap["openid"]
+	sessionKey := wxMap["session_key"]
+	bytes, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
+	if err != nil {
+		httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
+	}
+	phoneInfo := new(WxPhoneNumberInfo)
+	json.Unmarshal(bytes, phoneInfo)
+
+	db := mysql.GetInstance(false)
+	db.Update(records.RecordNameCustomer).Set("name", req.Name).Set("mobile", phoneInfo.PurePhoneNumber).
+		Where("customer_id", "=", customerId).Execute()
+	httplib.Success(c)
+	return
 }
