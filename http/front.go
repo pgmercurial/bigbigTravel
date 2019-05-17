@@ -317,12 +317,14 @@ func customerWxPayNotify(c *gin.Context) {
 		logger.Error("customerWxPayNotify", uuid, err.Error())
 		return
 	}
+	fmt.Println("notify outTrade no:", outTradeNo)
 	db := mysql.GetInstance(false)
 	orderId, err := strconv.Atoi(parse32TradeNo(outTradeNo))
 	if err != nil {
 		logger.Error("customerWxPayNotify", uuid, err.Error())
 		return
 	}
+	fmt.Println("notify normal order id:", orderId)
 	normalOrderRecord :=db.FindOneByPrimary(records.RecordNameNormalOrder, orderId)
 	if normalOrderRecord == nil {
 		logger.Error("customerWxPayNotify", uuid, errors.New("miss normal order record"))

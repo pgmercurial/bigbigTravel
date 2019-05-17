@@ -95,7 +95,7 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 	h := &http.Client{Transport: transport}
 	p := c.fillRequestData(params)
 	xml := MapToXml(p)
-	fmt.Println("postWithCert", "xml request", xml)
+	//fmt.Println("postWithCert", "xml request", xml)
 	response, err := h.Post(url, bodyType, strings.NewReader(xml))
 	if err != nil {
 		return "", err
