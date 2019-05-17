@@ -312,6 +312,8 @@ func customerWxPayNotify(c *gin.Context) {
 	uuid := c.GetString("requestId")
 	body, _ := ioutil.ReadAll(c.Request.Body)
 
+	fmt.Println("wx notify")
+
 	outTradeNo, err := methods.WxPayNotify(c, body, conf.Config.Wx)
 	if err != nil {
 		logger.Error("customerWxPayNotify", uuid, err.Error())
