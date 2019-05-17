@@ -303,7 +303,7 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	resp["signType"] = "MD5"
 	resp["paySigh"] = wxpay.Resign(resp, conf.Config.Wx.ApiKey)
 
-	httplib.Success(c, map[string]string(params))
+	httplib.Success(c, resp)
 	return
 }
 
