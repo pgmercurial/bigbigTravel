@@ -287,8 +287,7 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	db := mysql.GetInstance(false)
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "mobile", "name", "product_id", "payed", "withdraw").
 		Value(customerId, req.Mobile, "", req.ProductId, 0, 0).Execute().LastInsertId()
-	orderId = 10000000000000000000000000000000 + orderId
-	params, err := methods.UnifiedOrder(conf.Config.Wx, strconv.Itoa(orderId), c.ClientIP(), openid)
+	params, err := methods.UnifiedOrder(conf.Config.Wx, gen32TradeNo(strconv.Itoa(orderId)), c.ClientIP(), openid)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return
@@ -309,8 +308,7 @@ func customerWxPayNotify(c *gin.Context) {
 		return
 	}
 	db := mysql.GetInstance(false)
-	orderId, err := strconv.Atoi(outTradeNo)
-	orderId = orderId - 10000000000000000000000000000000
+	orderId, err := strconv.Atoi(parse32TradeNo(outTradeNo))
 	if err != nil {
 		logger.Error("customerWxPayNotify", uuid, err.Error())
 		return
@@ -324,4 +322,21 @@ func customerWxPayNotify(c *gin.Context) {
 	normalOrder.Payed = 1
 	db.SaveRecord(normalOrder)
 	return
+}
+
+
+func gen32TradeNo(origin string) string{
+	l := len([]rune(origin))
+	zeroCnt := 32 - l - 1
+	result := "1"
+	for i := 0; i < zeroCnt; i++ {
+		result += "0"
+	}
+	result += origin
+	return result
+}
+
+func parse32TradeNo(origin string) string{
+	result := strings.TrimPrefix(origin, "1")
+	return strings.TrimLeft(result, "0")
 }
