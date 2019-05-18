@@ -35,7 +35,8 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/wxPayNotify", customerWxPayNotify)
 
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/needAuthorize", customerNeedAuthorize)
-	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/authorize", customerAuthorize)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/authorize/name", customerAuthorizeName)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/authorize/mobile", customerAuthorizeMobile)
 
 }
 
@@ -368,9 +369,9 @@ func customerNeedAuthorize(c *gin.Context) {
 	return
 }
 
-type CustomerAuthorizeRequest struct {
-	WxCode			string 	`json:"wxCode" form:"wxCode"`
+type CustomerAuthorizeNameRequest struct {
 	Name			string `json:"name" form:"name"`
+	WxCode			string 	`json:"wxCode" form:"wxCode"`
 	EncryptedData   string `json:"encryptedData" form:"encryptedData"`
 	EncryptedDataIv string `json:"encryptedDataIv" form:"encryptedDataIv"`
 }
@@ -378,20 +379,40 @@ type WxPhoneNumberInfo struct {
 	PhoneNumber			string 	`json:"phoneNumber" form:"phoneNumber"`
 	PurePhoneNumber		string 	`json:"purePhoneNumber" form:"purePhoneNumber"`
 }
-func customerAuthorize(c *gin.Context) {
+func customerAuthorizeName(c *gin.Context) {
 	var customerId int
 	var ok bool
 	if customerId, ok = methods.ParseHttpContextToken(c, consts.Customer); !ok {
 		return
 	}
-	req := new(CustomerAuthorizeRequest)
+	req := new(CustomerAuthorizeNameRequest)
+	httplib.Load(c, req)
+
+	db := mysql.GetInstance(false)
+	db.Update(records.RecordNameCustomer).Set("name", req.Name).
+		Where("customer_id", "=", customerId).Execute()
+	httplib.Success(c)
+	return
+}
+
+type CustomerAuthorizeMobileRequest struct {
+	WxCode			string 	`json:"wxCode" form:"wxCode"`
+	EncryptedData   string `json:"encryptedData" form:"encryptedData"`
+	EncryptedDataIv string `json:"encryptedDataIv" form:"encryptedDataIv"`
+}
+func customerAuthorizeMobile(c *gin.Context) {
+	var customerId int
+	var ok bool
+	if customerId, ok = methods.ParseHttpContextToken(c, consts.Customer); !ok {
+		return
+	}
+	req := new(CustomerAuthorizeMobileRequest)
 	httplib.Load(c, req)
 	wxMap, err := methods.ParseWxCode(req.WxCode, conf.Config.Wx)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxCodeParseError)
 		return
 	}
-	//openid := wxMap["openid"]
 	sessionKey := wxMap["session_key"]
 	bytes, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
 	if err != nil {
@@ -401,7 +422,7 @@ func customerAuthorize(c *gin.Context) {
 	json.Unmarshal(bytes, phoneInfo)
 
 	db := mysql.GetInstance(false)
-	db.Update(records.RecordNameCustomer).Set("name", req.Name).Set("mobile", phoneInfo.PurePhoneNumber).
+	db.Update(records.RecordNameCustomer).Set("mobile", phoneInfo.PurePhoneNumber).
 		Where("customer_id", "=", customerId).Execute()
 	httplib.Success(c)
 	return
