@@ -103,6 +103,7 @@ func customerRegister(c *gin.Context) {
 	customerId := db.Insert(records.RecordNameCustomer).Columns("open_id", "abandon").
 		Value(openId, 0).Execute().LastInsertId()
 	if customerId <= 0 {
+		fmt.Println(openId,"  ", customerId)
 		httplib.Failure(c, exception.ExceptionDBError)
 	}
 	token, _ := methods.GenUserToken(customerId, consts.Customer)
