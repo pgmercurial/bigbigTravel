@@ -285,6 +285,7 @@ type ProductListRequest struct {
 
 }
 type ProductListResponseItem struct {
+	ProductId      		int 		`json:"productId" form:"productId"`
 	ProductName      	string 		`json:"productName" form:"productName"`
 	Type 				int			`json:"type" form:"type"`
 	Destination 		string		`json:"destination" form:"destination"`
@@ -318,6 +319,7 @@ func productList(c *gin.Context) {
 		for _, productRecord := range productRecordList.AllRecord() {
 			product := productRecord.(*records.Product)
 			item := new(ProductListResponseItem)
+			item.ProductId = product.ProductId
 			item.ProductName = product.ProductName
 			item.Type = product.Type
 			item.Destination = product.Destination
