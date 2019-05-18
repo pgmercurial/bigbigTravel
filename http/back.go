@@ -25,10 +25,13 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/order/handlePrivate", orderHandlePrivate)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/create", productCreate)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/list", productList)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/detail", productDetail)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/update", productUpdate)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/delete", productDelete)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/resource/upload/image", resourceUpload)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf", sysConf)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/mainTagList", adminGetMainTagList)
+
 }
 
 type AdminLoginRequest struct {
@@ -425,4 +428,96 @@ func productDelete(c *gin.Context) {
 	db.Delete(records.RecordNameProduct).Where("product_id", "=", req.ProductId).Execute()
 	httplib.Success(c)
 	return
+}
+
+
+type ProductDetailRequest struct {
+	ProductId		int			`json:"productId" form:"productId"`
+}
+type ProductDetailResponse struct {
+	ProductName			string	`json:"productName" form:"productName"`
+	Type				int		`json:"type" form:"type"`
+	Destination			string	`json:"destination" form:"destination"`
+	Count				int		`json:"count" form:"count"`
+	Price				int		`json:"price" form:"price"`
+	ValidStartDate		string	`json:"start" form:"start"`
+	ValidEndDate		string	`json:"end" form:"end"`
+	Show				int		`json:"show" form:"show"`
+	TitleImages			[]*ImageItem	`json:"titleImages" form:"titleImages"`
+	DetailImages		[]*ImageItem	`json:"detailImages" form:"detailImages"`
+	Remarks				string		`form:"remarks" json:"remarks"`
+	MainTags			[]string	`json:"mainTags" form:"mainTags"`
+	SubTags				[]string	`json:"subTags" form:"subTags"`
+}
+
+func productDetail(c *gin.Context) {
+	req := new(ProductDetailRequest)
+	resp := new(ProductDetailResponse)
+	httplib.Load(c, req)
+	db := mysql.GetInstance(false)
+	productRecord := db.FindOneByPrimary(records.RecordNameProduct, req.ProductId)
+	if productRecord == nil {
+		httplib.Success(c, map[string]interface{}{"detail":resp})
+		return
+	}
+	product := productRecord.(*records.Product)
+	resp.ProductName = product.ProductName
+	resp.Type = product.Type
+	resp.Destination = product.Destination
+	resp.Count = product.Count
+	resp.Price = product.Price
+	resp.ValidStartDate = product.ValidStartDate
+	resp.ValidEndDate = product.ValidEndDate
+	resp.Show = product.Show
+	resp.Remarks = product.Remarks
+	resp.MainTags = strings.Split(product.MainTags, ",")
+	resp.SubTags = strings.Split(product.SubTags, ",")
+
+	resp.TitleImages = make([]*ImageItem, 0)
+	titleImageIds := strings.Split(product.TitleResourceIds, ",")
+	for _, resourceIdStr := range titleImageIds {
+		resourceId, _ := strconv.Atoi(resourceIdStr)
+		resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+		if resourceRecord != nil {
+			item := new(ImageItem)
+			item.ResourceId = resourceId
+			item.Url = resourceRecord.(*records.Resource).QiniuUrl
+			resp.TitleImages = append(resp.TitleImages, item)
+		}
+	}
+
+	resp.DetailImages = make([]*ImageItem, 0)
+	detailImageIds := strings.Split(product.DetailResourceIds, ",")
+	for _, resourceIdStr := range detailImageIds {
+		resourceId, _ := strconv.Atoi(resourceIdStr)
+		resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+		if resourceRecord != nil {
+			item := new(ImageItem)
+			item.ResourceId = resourceId
+			item.Url = resourceRecord.(*records.Resource).QiniuUrl
+			resp.DetailImages = append(resp.DetailImages, item)
+		}
+	}
+
+	httplib.Success(c, map[string]interface{}{"detail":resp})
+	return
+}
+
+
+func adminGetMainTagList(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
+		return
+	}
+	db := mysql.GetInstance(false)
+	sysconfRecord:= db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
+	if sysconfRecord == nil {
+		httplib.Success(c, map[string]interface{}{"list":[]string{}})
+		return
+	} else {
+		sysConf := sysconfRecord.(*records.SysConf)
+		mainTagsStr := sysConf.MainTags
+		mainTagList := strings.Split(mainTagsStr, ",")
+		httplib.Success(c, map[string]interface{}{"list":mainTagList})
+		return
+	}
 }
