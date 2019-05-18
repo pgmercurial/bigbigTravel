@@ -235,7 +235,7 @@ func sysConf(c *gin.Context) {
 		db.Update(records.RecordNameSysConf).Set("enable", 0).Execute()
 		db.Insert(records.RecordNameSysConf).Columns("main_tags").Value(req.MainTags).Execute()
 	} else {  //update
-		sysConfRecord := db.Find(records.RecordNameSysConf).Where("enable", "=", 1).Execute().Fetch()
+		sysConfRecord := db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
 		if sysConfRecord != nil {
 			sysConf := sysConfRecord.(*records.SysConf)
 			if req.MainTags != "" {
