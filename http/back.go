@@ -505,9 +505,6 @@ func productDetail(c *gin.Context) {
 
 
 func adminGetMainTagList(c *gin.Context) {
-	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
-		return
-	}
 	db := mysql.GetInstance(false)
 	sysconfRecord:= db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
 	if sysconfRecord == nil {
