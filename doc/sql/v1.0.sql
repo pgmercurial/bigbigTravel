@@ -15,6 +15,7 @@ CREATE TABLE `admin` (
 
 CREATE TABLE `customer` (
   `customer_id` int(11) NOT NULL AUTO_INCREMENT,
+  `open_id` varchar(128) NOT NULL DEFAULT '' COMMENT 'wx open id',
   `name` varchar(20) NOT NULL DEFAULT '' COMMENT '客户姓名',
   `password` varchar(128) NOT NULL DEFAULT '' COMMENT '密文pwd',
   `head_photo` varchar(128) NOT NULL DEFAULT '' COMMENT '头像七牛云url',
@@ -22,13 +23,13 @@ CREATE TABLE `customer` (
   `abandon` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0-有效 1-弃用',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`customer_id`),
-  UNIQUE KEY `idx_mobile` (`mobile`)
+  PRIMARY KEY (`customer_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='客户表';
 
 CREATE TABLE `product` (
   `product_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '产品名称',
+  `short_name` varchar(32) NOT NULL DEFAULT '' COMMENT '产品名称较短',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '产品名称较长',
   `type` tinyint(1) NOT NULL DEFAULT 0 COMMENT '产品类型 0-国内 1-国外',
   `destination` varchar(64) NOT NULL DEFAULT '' COMMENT '目的地名称',
   `count` int(10) NOT NULL DEFAULT 0 COMMENT '剩余数量',

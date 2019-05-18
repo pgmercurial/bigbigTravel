@@ -27,7 +27,7 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/register", customerRegister)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/sendSmsCode", customerSendSmsCode)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getMainTagList", customerGetMainTagList)
-	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductsByMainTag", customerGetProductsByMainTag)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProducts", customerGetProducts)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductDetail", customerGetProductDetail)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/privateOrder", customerPrivateOrder)
 
@@ -140,46 +140,48 @@ func customerGetMainTagList(c *gin.Context) {
 	}
 }
 
-type CustomerGetProductsByMainTagRequest struct {
-	MainTag          string `json:"mainTag" form:"mainTag"`
-}
-type CustomerGetProductsByMainTagResponseItem struct {
-	ProductId         int 		`json:"productId" form:"productId"`
-	ProductName       string 	`json:"productName" form:"productName"`
-	ImageUrl          string 	`json:"imageUrl" form:"imageUrl"`
-	SubTags           []string 	`json:"subTags" form:"subTags"`
+type CustomerGetProductsResponseItem1 struct {
+	MainTag         string 		`json:"mainTag" form:"mainTag"`
+	List			[]*CustomerGetProductsResponseItem2	`json:"list" form:"list"`
 }
 
-func customerGetProductsByMainTag(c *gin.Context) {
+type CustomerGetProductsResponseItem2 struct {
+	ProductId         int 		`json:"productId" form:"productId"`
+	Destination       string 	`json:"destination" form:"destination"`
+}
+
+func customerGetProducts(c *gin.Context) {
 	if _, success := methods.ParseHttpContextToken(c, consts.Customer); !success {
 		return
 	}
-	req := new(CustomerGetProductsByMainTagRequest)
-	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
-	productRecordList := db.Find(records.RecordNameProduct).Select("*").
-		Where("main_tags", "like", "%"+req.MainTag+"%").
-		Where("show", "=", 1).Execute().FetchAll()
-	resp := make([]*CustomerGetProductsByMainTagResponseItem, 0)
-	if productRecordList != nil && productRecordList.Len() > 0 {
+	resp := make([]*CustomerGetProductsResponseItem1, 0)
+
+	sysConfRecord := db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
+	if sysConfRecord == nil {
+		httplib.Success(c, map[string]interface{}{"list":resp})
+		return
+	}
+	sysConf := sysConfRecord.(*records.SysConf)
+	mainTags := strings.Split(sysConf.MainTags, ",")
+
+	for _, mainTag := range mainTags {
+		item1 := new(CustomerGetProductsResponseItem1)
+		productRecordList := db.Find(records.RecordNameProduct).Select("*").
+			Where("main_tags", "like", "%"+mainTag+"%").
+			Where("show", "=", 1).Execute().FetchAll()
+		if productRecordList == nil || productRecordList.Len() == 0 {
+			continue
+		}
 		for _, productRecord := range productRecordList.AllRecord() {
 			product := productRecord.(*records.Product)
-			item := new(CustomerGetProductsByMainTagResponseItem)
-			//取第一个title resource id， 获取图片资源url
-			titleResourceList := strings.Split(product.TitleResourceIds, ",")
-			if len(titleResourceList) > 0 {
-				firstResourceId, err := strconv.Atoi(titleResourceList[0])
-				if err == nil {
-					if resourceRecord := db.FindOneByPrimary(records.RecordNameResource, firstResourceId); resourceRecord != nil {
-						item.ImageUrl = resourceRecord.(*records.Resource).QiniuUrl
-					}
-				}
-			}
-			item.ProductId = product.ProductId
-			item.ProductName = product.ProductName
-			item.SubTags = strings.Split(product.SubTags, ",")
-			resp = append(resp, item)
+			item2 := new(CustomerGetProductsResponseItem2)
+			item2.ProductId = product.ProductId
+			item2.Destination = product.Destination
+			item1.List = append(item1.List, item2)
 		}
+		item1.MainTag = mainTag
+		resp = append(resp, item1)
 	}
 
 	httplib.Success(c, map[string]interface{}{"list":resp})
