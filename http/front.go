@@ -277,10 +277,11 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	db := mysql.GetInstance(false)
 
 	customer := db.FindOneByPrimary(records.RecordNameCustomer, customerId).(*records.Customer)
+	product := db.FindOneByPrimary(records.RecordNameProduct, req.ProductId).(*records.Product)
 
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "mobile", "name", "product_id", "payed", "withdraw").
 		Value(customerId, customer.Mobile, customer.CustomerName, req.ProductId, 0, 0).Execute().LastInsertId()
-	params, err := methods.UnifiedOrder(conf.Config.Wx, gen32TradeNo(strconv.Itoa(orderId)), c.ClientIP(), customer.OpenId)
+	params, err := methods.UnifiedOrder(conf.Config.Wx, gen32TradeNo(strconv.Itoa(orderId)), c.ClientIP(), customer.OpenId, product.Price)
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return
