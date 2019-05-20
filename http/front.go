@@ -13,12 +13,13 @@ import (
 	"bigbigTravel/conf"
 	"bigbigTravel/consts"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
+	"math/rand"
 	"strconv"
 	"strings"
-	"errors"
 	"time"
 )
 
@@ -37,6 +38,9 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/needAuthorize", customerNeedAuthorize)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/authorize/name", customerAuthorizeName)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/authorize/mobile", customerAuthorizeMobile)
+
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductTitleImages", customerGetProductTitleImages)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductsByMainTag", customerGetProductByMainTag)
 
 }
 
@@ -166,6 +170,9 @@ func customerGetProducts(c *gin.Context) {
 	mainTags := strings.Split(sysConf.MainTags, ",")
 
 	for _, mainTag := range mainTags {
+		if mainTag == "特别策划" || mainTag == "旅行周边" || mainTag == "积分商城" || mainTag == "签证办理" || mainTag == "关于齐行" {
+			continue
+		}
 		item1 := new(CustomerGetProductsResponseItem1)
 		productRecordList := db.Find(records.RecordNameProduct).Select("*").
 			Where("main_tags", "like", "%"+mainTag+"%").
@@ -429,5 +436,101 @@ func customerAuthorizeMobile(c *gin.Context) {
 	db.Update(records.RecordNameCustomer).Set("mobile", phoneInfo.PurePhoneNumber).
 		Where("customer_id", "=", customerId).Execute()
 	httplib.Success(c)
+	return
+}
+
+type CustomerGetProductTitleImagesResponseItem struct {
+	ProductId			int 	`json:"productId" form:"productId"`
+	TitleImage   		string  `json:"titleImage" form:"titleImage"`
+}
+func customerGetProductTitleImages(c *gin.Context) {
+	resp := make([]*CustomerGetProductTitleImagesResponseItem, 0)
+	db := mysql.GetInstance(false)
+	productIds := db.Find(records.RecordNameProduct).Select("*").Limit(100).Execute().FetchAll().Columns("productId").([]int)
+	num := len(productIds)
+
+	fn := func(productId int) {
+		product := db.FindOneByPrimary(records.RecordNameProduct, productId).(*records.Product)
+		item := new(CustomerGetProductTitleImagesResponseItem)
+		item.ProductId = productId
+		resources := strings.Split(product.TitleResourceIds, ",")
+		if len(resources) == 0 {
+			item.TitleImage = ""
+		} else {
+			resourceId, _ := strconv.Atoi(resources[0])
+			resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+			if resourceRecord == nil {
+				item.TitleImage = ""
+			} else {
+				item.TitleImage = resourceRecord.(*records.Resource).QiniuUrl
+			}
+		}
+		resp = append(resp, item)
+	}
+
+	if num == 0 {
+		httplib.Success(c, map[string]interface{}{"list":resp})
+		return
+	} else if num <= 3 {
+		for _, productId := range productIds {
+			fn(productId)
+		}
+	} else {
+		for i := 0; i < 3; i++ {
+			ri := rand.Intn(num)
+			productId := productIds[ri]
+			fn(productId)
+			productIds = append(productIds[0:ri], productIds[ri+1:]...)
+			num = len(productIds)
+		}
+	}
+	httplib.Success(c, map[string]interface{}{"list":resp})
+	return
+}
+
+type CustomerGetProductByMainTagRequest struct {
+	MainTag		string 	`json:"mainTag" form:"mainTag"`
+}
+type CustomerGetProductByMainTagResponseItem struct {
+	ProductId		int 	`json:"productId" form:"productId"`
+	ProductName		string 	`json:"productName" form:"productName"`
+	TitleImage		string 	`json:"titleImage" form:"titleImage"`
+	Price			int 	`json:"price" form:"price"`
+
+}
+func customerGetProductByMainTag(c *gin.Context) {
+	req := new(CustomerGetProductByMainTagRequest)
+	resp := make([]*CustomerGetProductByMainTagResponseItem, 0)
+	httplib.Load(c, req)
+	db := mysql.GetInstance(false)
+	productRecordList := db.Find(records.RecordNameProduct).Select("*").
+		Where("main_tags", "like", "%"+req.MainTag+"%").
+		Where("show", "=", 1).Execute().FetchAll()
+	if productRecordList == nil || productRecordList.Len() == 0 {
+		httplib.Success(c, map[string]interface{}{"list":resp})
+		return
+	} else {
+		for _, productRecord := range productRecordList.AllRecord() {
+			product := productRecord.(*records.Product)
+			item := new(CustomerGetProductByMainTagResponseItem)
+			item.ProductId = product.ProductId
+			item.ProductName = product.ProductName
+			item.Price = product.Price
+			resources := strings.Split(product.TitleResourceIds, ",")
+			if len(resources) == 0 {
+				item.TitleImage = ""
+			} else {
+				resourceId, _ := strconv.Atoi(resources[0])
+				resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+				if resourceRecord == nil {
+					item.TitleImage = ""
+				} else {
+					item.TitleImage = resourceRecord.(*records.Resource).QiniuUrl
+				}
+			}
+			resp = append(resp, item)
+		}
+	}
+	httplib.Success(c, map[string]interface{}{"list":resp})
 	return
 }
