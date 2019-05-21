@@ -170,7 +170,7 @@ func customerGetProducts(c *gin.Context) {
 	mainTags := strings.Split(sysConf.MainTags, ",")
 
 	for _, mainTag := range mainTags {
-		if mainTag == "特别策划" || mainTag == "旅行周边" || mainTag == "积分商城" || mainTag == "签证办理" || mainTag == "关于齐行" {
+		if mainTag == "旅行定制" || mainTag == "线路招募" || mainTag == "签证办理" || mainTag == "旅行周边" || mainTag == "自由行" {
 			continue
 		}
 		item1 := new(CustomerGetProductsResponseItem1)
