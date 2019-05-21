@@ -30,7 +30,8 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/product/delete", productDelete)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/resource/upload/image", resourceUpload)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf/mainTags", sysConfMainTags)
-	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf/images", sysConfImages)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf/headImages", sysConfHeadImages)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf/introImages", sysConfIntroImages)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/mainTagList", adminGetMainTagList)
 
 }
@@ -252,11 +253,11 @@ func sysConfMainTags(c *gin.Context) {
 	return
 }
 
-type SysConfImagesRequest struct {
+type SysConfHeadImagesRequest struct {
 	Images   		string 		`json:"images" form:"images"`
 }
-func sysConfImages(c *gin.Context) {
-	req := new(SysConfImagesRequest)
+func sysConfHeadImages(c *gin.Context) {
+	req := new(SysConfHeadImagesRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
 
@@ -266,12 +267,40 @@ func sysConfImages(c *gin.Context) {
 	if sysConfRecord != nil {
 		sysConf := sysConfRecord.(*records.SysConf)
 		if req.Images != "" {
-			sysConf.Images = req.Images
+			sysConf.HeadImages = req.Images
 		}
 		db.SaveRecord(sysConf)
 		enabledId = sysConf.SysConfId
 	} else {
-		enabledId = db.Insert(records.RecordNameSysConf).Columns("images", "enable").Value(req.Images, 1).Execute().LastInsertId()
+		enabledId = db.Insert(records.RecordNameSysConf).Columns("head_images", "enable").Value(req.Images, 1).Execute().LastInsertId()
+	}
+
+	db.Update(records.RecordNameSysConf).Set("enable", 0).Where("sys_conf_id", "<>", enabledId).Execute()
+
+	httplib.Success(c)
+	return
+}
+
+type SysConfIntroImagesRequest struct {
+	Images   		string 		`json:"images" form:"images"`
+}
+func sysConfIntroImages(c *gin.Context) {
+	req := new(SysConfIntroImagesRequest)
+	httplib.Load(c, req)
+	db := mysql.GetInstance(false)
+
+	var enabledId int
+
+	sysConfRecord := db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
+	if sysConfRecord != nil {
+		sysConf := sysConfRecord.(*records.SysConf)
+		if req.Images != "" {
+			sysConf.IntroImages = req.Images
+		}
+		db.SaveRecord(sysConf)
+		enabledId = sysConf.SysConfId
+	} else {
+		enabledId = db.Insert(records.RecordNameSysConf).Columns("intro_images", "enable").Value(req.Images, 1).Execute().LastInsertId()
 	}
 
 	db.Update(records.RecordNameSysConf).Set("enable", 0).Where("sys_conf_id", "<>", enabledId).Execute()

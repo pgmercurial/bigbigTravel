@@ -43,6 +43,8 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductsByMainTag", customerGetProductByMainTag)
 
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getHeadImages", customerGetHeadImages)
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getIntroImages", customerGetIntroImages)
+
 }
 
 type CustomerLoginRequest struct {
@@ -545,7 +547,32 @@ func customerGetHeadImages(c *gin.Context) {
 		httplib.Success(c, map[string]interface{}{"list":resp})
 		return
 	}
-	images := sysConfRecord.(*records.SysConf).Images
+	images := sysConfRecord.(*records.SysConf).HeadImages
+	resourceIds := strings.Split(images, ",")
+	for _, resourceIdStr := range resourceIds {
+		resourceId, err := strconv.Atoi(resourceIdStr)
+		if err != nil {
+			continue
+		}
+		resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+		if resourceRecord == nil {
+			continue
+		}
+		resp = append(resp, resourceRecord.(*records.Resource).QiniuUrl)
+	}
+	httplib.Success(c, map[string]interface{}{"list":resp})
+	return
+}
+
+func customerGetIntroImages(c *gin.Context) {
+	resp := make([]string, 0)
+	db := mysql.GetInstance(false)
+	sysConfRecord := db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
+	if sysConfRecord == nil {
+		httplib.Success(c, map[string]interface{}{"list":resp})
+		return
+	}
+	images := sysConfRecord.(*records.SysConf).IntroImages
 	resourceIds := strings.Split(images, ",")
 	for _, resourceIdStr := range resourceIds {
 		resourceId, err := strconv.Atoi(resourceIdStr)

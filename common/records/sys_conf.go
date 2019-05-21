@@ -13,7 +13,8 @@ func init()  {
 type SysConf struct{
 	SysConfId	int	`json:"sysConfId" form:"sysConfId" column:"sys_conf_id" primary:"true" modify:"false"`
 	MainTags	string	`json:"mainTags" form:"mainTags" column:"main_tags" modify:"true"`
-	Images	string	`json:"images" form:"images" column:"images" modify:"true"`
+	HeadImages	string	`json:"headImages" form:"headImages" column:"head_images" modify:"true"`
+	IntroImages	string	`json:"introImages" form:"introImages" column:"intro_images" modify:"true"`
 	Enable	int	`form:"enable" column:"enable" modify:"true" json:"enable"`
 	CreateTime	string	`json:"createTime" form:"createTime" column:"create_time" modify:"false"`
 	UpdateTime	string	`json:"updateTime" form:"updateTime" column:"update_time" modify:"false"`
