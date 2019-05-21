@@ -80,14 +80,13 @@ CREATE TABLE `private_order` (
 CREATE TABLE `sys_conf` (
   `sys_conf_id` int(11) NOT NULL AUTO_INCREMENT,
   `main_tags` varchar(512) NOT NULL DEFAULT '' COMMENT '主标签列表，逗号分隔',
-  `enable` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否使用0-不使用 1-使用',
+  `images` varchar(512) NOT NULL DEFAULT '' COMMENT '头图id list，逗号分隔',
+  `enable` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否使用0-不使用 1-使用',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`sys_conf_id`),
   KEY `idx_enable` (`enable`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='私人订制订单表';
-
-
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='私人订制订单表'
 
 CREATE TABLE `resource` (
   `resource_id` int(11) NOT NULL AUTO_INCREMENT,

@@ -42,6 +42,7 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductTitleImages", customerGetProductTitleImages)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getProductsByMainTag", customerGetProductByMainTag)
 
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getHeadImages", customerGetHeadImages)
 }
 
 type CustomerLoginRequest struct {
@@ -530,6 +531,32 @@ func customerGetProductByMainTag(c *gin.Context) {
 			}
 			resp = append(resp, item)
 		}
+	}
+	httplib.Success(c, map[string]interface{}{"list":resp})
+	return
+}
+
+
+func customerGetHeadImages(c *gin.Context) {
+	resp := make([]string, 0)
+	db := mysql.GetInstance(false)
+	sysConfRecord := db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
+	if sysConfRecord == nil {
+		httplib.Success(c, map[string]interface{}{"list":resp})
+		return
+	}
+	images := sysConfRecord.(*records.SysConf).Images
+	resourceIds := strings.Split(images, ",")
+	for _, resourceIdStr := range resourceIds {
+		resourceId, err := strconv.Atoi(resourceIdStr)
+		if err != nil {
+			continue
+		}
+		resourceRecord := db.FindOneByPrimary(records.RecordNameResource, resourceId)
+		if resourceRecord == nil {
+			continue
+		}
+		resp = append(resp, resourceRecord.(*records.Resource).QiniuUrl)
 	}
 	httplib.Success(c, map[string]interface{}{"list":resp})
 	return
