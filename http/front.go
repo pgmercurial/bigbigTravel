@@ -596,7 +596,7 @@ type GetCustomerOrdersResponseItem struct {
 	Payed				int		`json:"payed"`
 	Price				int		`json:"price"`
 	FirstTitleImage		string		`json:"firstTitleImage"`
-
+	OutTradeNo			string		`json:"outTradeNo"`
 }
 func customerGetOrders(c *gin.Context) {
 	var customerId int
@@ -616,6 +616,7 @@ func customerGetOrders(c *gin.Context) {
 		item := new(GetCustomerOrdersResponseItem)
 		item.ProductId = order.ProductId
 		item.Payed = order.Payed
+		item.OutTradeNo = gen32TradeNo(strconv.Itoa(order.ProductOrderId))
 		productRecord := db.FindOneByPrimary(records.RecordNameProduct, item.ProductId)
 		if productRecord != nil {
 			product := productRecord.(*records.Product)
