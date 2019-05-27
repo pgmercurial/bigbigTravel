@@ -33,7 +33,6 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf/headImages", sysConfHeadImages)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/sys-conf/introImages", sysConfIntroImages)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "admin/mainTagList", adminGetMainTagList)
-
 }
 
 type AdminLoginRequest struct {
@@ -579,3 +578,4 @@ func adminGetMainTagList(c *gin.Context) {
 		return
 	}
 }
+

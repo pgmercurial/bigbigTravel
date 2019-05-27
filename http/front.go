@@ -45,6 +45,8 @@ func init() {
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getHeadImages", customerGetHeadImages)
 	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getIntroImages", customerGetIntroImages)
 
+	http_middleware.RegisterHttpAction(http_middleware.MethodAll, "customer/getOrders", customerGetOrders)
+
 }
 
 type CustomerLoginRequest struct {
@@ -584,6 +586,53 @@ func customerGetIntroImages(c *gin.Context) {
 			continue
 		}
 		resp = append(resp, resourceRecord.(*records.Resource).QiniuUrl)
+	}
+	httplib.Success(c, map[string]interface{}{"list":resp})
+	return
+}
+
+type GetCustomerOrdersResponseItem struct {
+	ProductId			int		`json:"productId"`
+	Payed				int		`json:"payed"`
+	Price				int		`json:"price"`
+	FirstTitleImage		string		`json:"firstTitleImage"`
+
+}
+func customerGetOrders(c *gin.Context) {
+	var customerId int
+	var ok bool
+	if customerId, ok = methods.ParseHttpContextToken(c, consts.Customer); !ok {
+		return
+	}
+	resp := make([]*GetCustomerOrdersResponseItem, 0)
+	db := mysql.GetInstance(false)
+	orderRecordList := db.Find(records.RecordNameNormalOrder).Select("*").Where("customer_id", "=", customerId).Execute().FetchAll()
+	if orderRecordList == nil || orderRecordList.Len() <= 0 {
+		httplib.Success(c, map[string]interface{}{"list":resp})
+		return
+	}
+	for _, orderRecord := range orderRecordList.AllRecord() {
+		order := orderRecord.(*records.NormalOrder)
+		item := new(GetCustomerOrdersResponseItem)
+		item.ProductId = order.ProductId
+		item.Payed = order.Payed
+		productRecord := db.FindOneByPrimary(records.RecordNameProduct, item.ProductId)
+		if productRecord != nil {
+			product := productRecord.(*records.Product)
+			item.Price = product.Price
+			titleResourceIdStrs := strings.Split(product.TitleResourceIds, ",")
+			if len(titleResourceIdStrs) > 0 {
+				firstResourceId, err := strconv.Atoi(titleResourceIdStrs[0])
+				if err == nil {
+					resourceRecord := db.FindOneByPrimary(records.RecordNameResource, firstResourceId)
+					if resourceRecord != nil {
+						item.FirstTitleImage = resourceRecord.(*records.Resource).QiniuUrl
+					}
+				}
+			}
+
+		}
+		resp = append(resp, item)
 	}
 	httplib.Success(c, map[string]interface{}{"list":resp})
 	return
