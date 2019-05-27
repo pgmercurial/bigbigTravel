@@ -593,6 +593,7 @@ func customerGetIntroImages(c *gin.Context) {
 
 type GetCustomerOrdersResponseItem struct {
 	ProductId			int		`json:"productId"`
+	ProductName			string	`json:"productName"`
 	Payed				int		`json:"payed"`
 	Price				int		`json:"price"`
 	FirstTitleImage		string		`json:"firstTitleImage"`
@@ -621,6 +622,7 @@ func customerGetOrders(c *gin.Context) {
 		if productRecord != nil {
 			product := productRecord.(*records.Product)
 			item.Price = product.Price
+			item.ProductName = product.ProductName
 			titleResourceIdStrs := strings.Split(product.TitleResourceIds, ",")
 			if len(titleResourceIdStrs) > 0 {
 				firstResourceId, err := strconv.Atoi(titleResourceIdStrs[0])
