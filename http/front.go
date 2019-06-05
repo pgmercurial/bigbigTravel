@@ -422,6 +422,7 @@ func customerAuthorizeMobile(c *gin.Context) {
 	if customerId, ok = methods.ParseHttpContextToken(c, consts.Customer); !ok {
 		return
 	}
+	uuid := c.GetString("requestId")
 	req := new(CustomerAuthorizeMobileRequest)
 	httplib.Load(c, req)
 	wxMap, err := methods.ParseWxCode(req.WxCode, conf.Config.Wx)
@@ -432,10 +433,17 @@ func customerAuthorizeMobile(c *gin.Context) {
 	sessionKey := wxMap["session_key"]
 	bytes, err := methods.ParseWxEncryptedData(req.EncryptedData, sessionKey, req.EncryptedDataIv)
 	if err != nil {
+		logger.Error("customerAuthorizeMobile", uuid, "mobile authorize failed with error:"+err.Error())
 		httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
+		return
 	}
 	phoneInfo := new(WxPhoneNumberInfo)
-	json.Unmarshal(bytes, phoneInfo)
+	err = json.Unmarshal(bytes, phoneInfo)
+	if err != nil {
+		logger.Error("customerAuthorizeMobile", uuid, "mobile authorize json parse failed with error:"+err.Error())
+		httplib.Failure(c, exception.ExceptionWxEncryptedDataParseError)
+		return
+	}
 
 	db := mysql.GetInstance(false)
 	db.Update(records.RecordNameCustomer).Set("mobile", phoneInfo.PurePhoneNumber).

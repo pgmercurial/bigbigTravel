@@ -94,12 +94,17 @@ type OrderListResponseItem struct {
 	Payed 			int			`json:"payed" form:"payed"`
 }
 func orderNormalList(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(OrderNormalListRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
 	resp := make([]*OrderListResponseItem, 0)
+	//normalOrderRecordList := db.Find(records.RecordNameNormalOrder).Select("*").
+	//	OrderBy("product_order_id asc").Limit(20).Offset(req.Page*20).Execute().FetchAll()
 	normalOrderRecordList := db.Find(records.RecordNameNormalOrder).Select("*").
-		OrderBy("product_order_id asc").Limit(20).Offset(req.Page*20).Execute().FetchAll()
+		OrderBy("product_order_id asc").Execute().FetchAll()
 	totalCount := db.Find(records.RecordNameNormalOrder).Select("*").Count()
 	if normalOrderRecordList == nil  || normalOrderRecordList.Len() <= 0 {
 		httplib.Success(c, map[string]interface{}{"list":resp})
@@ -141,12 +146,17 @@ type OrderPrivateListResponseItem struct {
 	Handled 		int 		`json:"handled" form:"handled"`
 }
 func orderPrivateList(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(OrderPrivateListRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
 	resp := make([]*OrderPrivateListResponseItem, 0)
+	//privateOrderRecordList := db.Find(records.RecordNamePrivateOrder).Select("*").
+	//	OrderBy("private_order_id asc").Limit(20).Offset(req.Page*20).Execute().FetchAll()
 	privateOrderRecordList := db.Find(records.RecordNamePrivateOrder).Select("*").
-		OrderBy("private_order_id asc").Limit(20).Offset(req.Page*20).Execute().FetchAll()
+		OrderBy("private_order_id asc").Execute().FetchAll()
 	if privateOrderRecordList == nil  || privateOrderRecordList.Len() <= 0 {
 		httplib.Success(c, map[string]interface{}{"list":resp})
 		return
@@ -175,6 +185,9 @@ type OrderHandlePrivateRequest struct {
 	Handled      			int 		`json:"handled" form:"handled"`
 }
 func orderHandlePrivate(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(OrderHandlePrivateRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -199,6 +212,9 @@ type ProductCreateRequest struct {
 	SubTags 			string		`json:"subTags" form:"subTags"`
 }
 func productCreate(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(ProductCreateRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -226,6 +242,9 @@ type SysConfMainTagsRequest struct {
 	MainTags      	string 		`json:"mainTags" form:"mainTags"`
 }
 func sysConfMainTags(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(SysConfMainTagsRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -256,6 +275,9 @@ type SysConfHeadImagesRequest struct {
 	Images   		string 		`json:"images" form:"images"`
 }
 func sysConfHeadImages(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(SysConfHeadImagesRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -284,6 +306,9 @@ type SysConfIntroImagesRequest struct {
 	Images   		string 		`json:"images" form:"images"`
 }
 func sysConfIntroImages(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(SysConfIntroImagesRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -309,6 +334,9 @@ func sysConfIntroImages(c *gin.Context) {
 }
 
 func resourceUpload(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	f, fh, err := c.Request.FormFile("file")
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionInvalidParams, "miss upload image key `image`:"+err.Error())
@@ -369,6 +397,9 @@ type ImageItem struct {
 
 }
 func productList(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(ProductListRequest)
 	resp := make([]*ProductListResponseItem, 0)
 	httplib.Load(c, req)
@@ -450,6 +481,9 @@ type ProductUpdateRequest struct {
 	SubTags 			string		`json:"subTags" form:"subTags"`
 }
 func productUpdate(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(ProductUpdateRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -482,6 +516,9 @@ type ProductDeleteRequest struct {
 	ProductId      		int 		`json:"productId" form:"productId"`
 }
 func productDelete(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(ProductDeleteRequest)
 	httplib.Load(c, req)
 	db := mysql.GetInstance(false)
@@ -511,6 +548,9 @@ type ProductDetailResponse struct {
 }
 
 func productDetail(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	req := new(ProductDetailRequest)
 	resp := new(ProductDetailResponse)
 	httplib.Load(c, req)
@@ -565,6 +605,9 @@ func productDetail(c *gin.Context) {
 
 
 func adminGetMainTagList(c *gin.Context) {
+	if _, success := methods.ParseHttpContextToken(c, consts.Admin); !success {
+		return
+	}
 	db := mysql.GetInstance(false)
 	sysconfRecord:= db.Find(records.RecordNameSysConf).Select("*").Where("enable", "=", 1).Execute().Fetch()
 	if sysconfRecord == nil {
