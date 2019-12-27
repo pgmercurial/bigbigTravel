@@ -20,6 +20,8 @@ github.com/go-sql-driver/mysql
 github.com/golang/protobuf/proto
 # github.com/json-iterator/go v1.1.5
 github.com/json-iterator/go
+# github.com/liyoung1992/wechatpay v0.0.0-20190222090224-1aed4f33edd6
+github.com/liyoung1992/wechatpay
 # github.com/mattn/go-isatty v0.0.7
 github.com/mattn/go-isatty
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
@@ -38,6 +40,9 @@ github.com/qiniu/x/reqid.v7
 github.com/qiniu/x/xlog.v7
 # github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2
 github.com/ugorji/go/codec
+# golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b
+golang.org/x/crypto/pkcs12
+golang.org/x/crypto/pkcs12/internal/rc2
 # golang.org/x/net v0.0.0-20181220203305-927f97764cc3
 golang.org/x/net/context
 # golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223

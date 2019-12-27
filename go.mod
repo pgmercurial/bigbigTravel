@@ -13,7 +13,7 @@ require (
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/liyoung1992/wechatpay v0.0.0-20190222090224-1aed4f33edd6
 	github.com/mattn/go-isatty v0.0.7 // indirect
-	github.com/objcoding/wxpay v1.0.6
+	github.com/objcoding/wxpay v1.0.6 // indirect
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/qiniu/x v7.0.8+incompatible
 	golang.org/x/crypto v0.0.0-20180910181607-0e37d006457b
