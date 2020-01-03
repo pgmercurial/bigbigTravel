@@ -36,8 +36,9 @@ func Failure(context *gin.Context, responseError *exception.RunException, detail
 	response.Code = responseError.Code
 	response.Msg = responseError.DisplayMsg
 	response.RequestId = context.GetString("requestId")
-	response.Data = struct {
-	}{}
+	response.Data = map[string]interface{}{
+		"detail err msg": detailMsg,
+	}
 	context.Set("responseCode", responseError.Code)
 	context.Set("exceptionMsg", fmt.Sprintf("%s:\"%s\"", responseError.LogMsg, detailMsg))
 	context.JSON(http.StatusOK, response)

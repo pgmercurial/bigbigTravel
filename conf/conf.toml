@@ -45,7 +45,7 @@ TemplateURL = "https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?ac
 AppAccessTokenURL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={appsecret}"
 MchId = "1534731141"
 UnifiedOrderURL = "https://api.mch.weixin.qq.com/pay/unifiedorder"
-NotifyUrl = "https://www.ruan89.cn/customer/wxPayNotify"
+NotifyUrl = "https://www.bigbigtravel.vip/customer/wxPayNotify"
 PayCertDataPath = "./apiclient_cert.p12"
 ApiKey = "bajiu889bajiu889bajiu889bajiu889"
 

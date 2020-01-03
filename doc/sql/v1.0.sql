@@ -40,6 +40,8 @@ CREATE TABLE `product` (
   `titleResourceIds` varchar(512) NOT NULL DEFAULT '' COMMENT 'qiniu ressource id list，逗号分隔！',
   `detailResourceIds` varchar(512) NOT NULL DEFAULT '' COMMENT 'qiniu ressource id list，逗号分隔！',
   `remarks` varchar(512) NOT NULL DEFAULT '' COMMENT '备注',
+  `main_tags` varchar(256) NOT NULL DEFAULT '' COMMENT '主标签列表，英文逗号分隔',
+  `sub_tags` varchar(256) NOT NULL DEFAULT '' COMMENT '副标签列表，英文逗号分隔',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`product_id`)
