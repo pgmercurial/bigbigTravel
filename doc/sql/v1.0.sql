@@ -16,7 +16,7 @@ CREATE TABLE `admin` (
 CREATE TABLE `customer` (
   `customer_id` int(11) NOT NULL AUTO_INCREMENT,
   `open_id` varchar(128) NOT NULL DEFAULT '' COMMENT 'wx open id',
-  `name` varchar(20) NOT NULL DEFAULT '' COMMENT '客户姓名',
+  `name` varchar(512) NOT NULL DEFAULT '' COMMENT '客户姓名',
   `password` varchar(128) NOT NULL DEFAULT '' COMMENT '密文pwd',
   `head_photo` varchar(128) NOT NULL DEFAULT '' COMMENT '头像七牛云url',
   `mobile` varchar(11) NOT NULL DEFAULT '' COMMENT '客户手机号',

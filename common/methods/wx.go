@@ -1,6 +1,7 @@
 package methods
 
 import (
+	"bigbigTravel/component/wxpay"
 	"bigbigTravel/conf"
 	"crypto/aes"
 	"crypto/cipher"
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/liyoung1992/wechatpay"
-	"bigbigTravel/component/wxpay"
 	"net/http"
 	"strings"
 )
@@ -61,40 +61,53 @@ type WxUserInfo struct {
 	UnionId   string `json:"unionId" form:"unionId"`
 }
 
-func ParseWxEncryptedData(encryptedData string, sessionKey string, iv string) ([]byte, error) {
-	cipher, err := base64.StdEncoding.DecodeString(encryptedData)
+//v2
+func ParseWxEncryptedData(encryptedData, sessionKey, iv string) ([]byte, error) {
+	if len(sessionKey) != 24 {
+		return nil, errors.New("session key length is error")
+	}
+
+	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
 	if err != nil {
-		fmt.Println("encryptedData: ", encryptedData, "\n", err.Error())
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("base64 decode session key failed with error:%s", err.Error()))
 	}
 
-	key, keyErr := base64.StdEncoding.DecodeString(sessionKey)
-	if keyErr != nil {
-		fmt.Println("sessionKey: ", sessionKey, "\n", keyErr.Error())
-		return nil, keyErr
+	if len(iv) != 24 {
+		return nil, errors.New("iv length is error")
+	}
+	aesIv, err := base64.StdEncoding.DecodeString(iv)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("base64 decode iv failed with error:%s", err.Error()))
 	}
 
-	theIV, ivErr := base64.StdEncoding.DecodeString(iv)
-	if ivErr != nil {
-		fmt.Println("iv: ", iv, "\n", ivErr.Error())
-		return nil, ivErr
+	aesCipherText, err := base64.StdEncoding.DecodeString(encryptedData)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("base64 decode encrypted data failed with error:%s", err.Error()))
+	}
+	aesPlantText := make([]byte, len(aesCipherText))
+
+	aesBlock, err := aes.NewCipher(aesKey)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("create new cipher failed with error:%s", err.Error()))
 	}
 
-	bytes, resultErr := aesDecrypt(cipher, key, theIV)
-	if resultErr != nil {
-		return nil, resultErr
-	}
-
-	//result := new(WxUserInfo)
-	//err = json.Unmarshal(bytes, result)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	return bytes, nil
+	mode := cipher.NewCBCDecrypter(aesBlock, aesIv)
+	mode.CryptBlocks(aesPlantText, aesCipherText)
+	aesPlantText = PKCS7UnPadding(aesPlantText)
+	return aesPlantText, nil
 }
 
+// PKCS7UnPadding return unpadding []Byte plantText
+func PKCS7UnPadding(plantText []byte) []byte {
+	length := len(plantText)
+	if length > 0 {
+		unPadding := int(plantText[length-1])
+		return plantText[:(length - unPadding)]
+	}
+	return plantText
+}
 
+//v1
 func aesDecrypt(cipherBytes, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
