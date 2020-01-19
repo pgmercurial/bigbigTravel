@@ -1,7 +1,7 @@
 package methods
 
 import (
-	"bigbigTravel/component/wxpay"
+	"bigbigTravel/component/wxpay2"
 	"bigbigTravel/conf"
 	"crypto/aes"
 	"crypto/cipher"
@@ -152,10 +152,13 @@ func pkcs7UnPadding(dst []byte, blockSize int) []byte {
 //	//Receipt    	string 		`json:"receipt" form:"receipt"`
 //	SceneInfo    	string 		`json:"scene_info" form:"scene_info"`
 //}
-func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string, openid string, price int) (wxpay.Params, error) {
-	client := wxpay.NewClient(wxpay.NewAccount(wc.AppId, wc.MchId, wc.ApiKey, false).SetCertData(wc.PayCertDataPath))
+func UnifiedOrder(wc *conf.WxConfig, outTradeNo string, clientIp string, openid string, price int) (wxpay2.Params, error) {
+	//client := wxpay.NewClient(wxpay.NewAccount(wc.AppId, wc.MchId, wc.ApiKey, false).SetCertData(wc.PayCertDataPath))
+	account := wxpay2.NewAccount(wc.AppId, wc.MchId, wc.ApiKey, false)
+	account.SetCertData(wc.PayCertDataPath)
+	client := wxpay2.NewClient(account)
 
-	params := make(wxpay.Params)
+	params := make(wxpay2.Params)
 	params.SetString("body", "test").
 		SetString("out_trade_no", outTradeNo).
 		SetInt64("total_fee", int64(price)).

@@ -9,7 +9,7 @@ import (
 	"bigbigTravel/component/http/httplib"
 	"bigbigTravel/component/logger"
 	"bigbigTravel/component/mysql"
-	"bigbigTravel/component/wxpay"
+	"bigbigTravel/component/wxpay2"
 	"bigbigTravel/conf"
 	"bigbigTravel/consts"
 	"encoding/json"
@@ -302,10 +302,10 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	resp := map[string]string{}
 	resp["appId"] = params["appid"]
 	resp["timeStamp"] = strconv.Itoa(int(time.Now().Unix()))
-	resp["nonceStr"] = wxpay.NonceStr()
+	resp["nonceStr"] = wxpay2.NonceStr()
 	resp["package"] = fmt.Sprintf("prepay_id=%s", params["prepay_id"])
 	resp["signType"] = "MD5"
-	resp["paySign"] = wxpay.Resign(resp, conf.Config.Wx.ApiKey)
+	resp["paySign"] = wxpay2.Resign(resp, conf.Config.Wx.ApiKey)
 
 	httplib.Success(c, resp)
 	return
