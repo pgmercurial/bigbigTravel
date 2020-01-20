@@ -351,7 +351,7 @@ func customerWxPayNotify(c *gin.Context) {
 func gen32TradeNo(origin string) string{
 	l := len([]rune(origin))
 	zeroCnt := 32 - l - 1
-	result := "1"
+	result := "2"
 	for i := 0; i < zeroCnt; i++ {
 		result += "0"
 	}
