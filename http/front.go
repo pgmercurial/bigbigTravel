@@ -5,6 +5,7 @@ import (
 	"bigbigTravel/common/records"
 	"bigbigTravel/common/sms"
 	"bigbigTravel/component/exception"
+	"bigbigTravel/component/helper"
 	"bigbigTravel/component/http/http_middleware"
 	"bigbigTravel/component/http/httplib"
 	"bigbigTravel/component/logger"
@@ -294,6 +295,7 @@ func customerWxPayDeposit(c *gin.Context) {  //微信支付定金
 	orderId := db.Insert(records.RecordNameNormalOrder).Columns("customer_id", "mobile", "name", "product_id", "payed", "withdraw").
 		Value(customerId, customer.Mobile, customer.CustomerName, req.ProductId, 0, 0).Execute().LastInsertId()
 	params, err := methods.UnifiedOrder(conf.Config.Wx, gen32TradeNo(strconv.Itoa(orderId)), c.ClientIP(), customer.OpenId, product.Price)
+	logger.Info("wxpay2", helper.GenerateUUID(), fmt.Sprintf("unified order resp param:%v", params))
 	if err != nil {
 		httplib.Failure(c, exception.ExceptionWxUnifiedOrderFailed, err.Error())
 		return
